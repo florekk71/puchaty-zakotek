@@ -151,12 +151,14 @@ function reservationField(value){return field('date','Termin (czas polski)',valu
 async function checkoutVisit(id){
  await refresh();const v=data.visits.find(v=>Number(v.rowid)===Number(id));if(!v||v.status!=='planned')throw new Error('Wizyta nie jest już planowana. Sprawdź jej status w historii.');const c=data.clients.find(c=>Number(c.id)===Number(v.fk_soc)),d=data.dogs.find(d=>Number(d.id)===Number(v.fk_dog));if(!c||!d)throw new Error('Brak dostępu do klienta lub aktywnej kartoteki psa tej wizyty.');activeClient=c;activeDog=d;clearCart();plannedVisit=Number(v.rowid);showView('pos');goToStage('service');
 }
-function blockCheckoutForm(id){
+function blockCheckoutForm(id,draft={clientId:0,dogId:0}){
  if(!canWrite())return;
  const block=(data.blocks||[]).find(b=>b.id===id);
  if(!block)throw new Error('Odśwież terminarz — blokada nie jest już dostępna.');
  const clients=data.clients;
- modal('Rozlicz zablokowany termin','<p style="grid-column:1/-1">Termin: '+esc(block.date.slice(0,16))+'. Wybierz klienta i psa. Blokada zmieni się w wizytę, potem wybierzesz usługi i płatność.</p>'+selectField('blockClient','Klient',[[0,'Wybierz klienta'],...clients.map(c=>[c.id,c.name])],0)+selectField('blockDog','Pies',[[0,'Najpierw wybierz klienta']],0),async values=>{
+ const dogs=data.dogs.filter(d=>Number(d.clientId)===Number(draft.clientId));
+ if(!dogs.some(d=>Number(d.id)===Number(draft.dogId)))draft.dogId=0;
+ modal('Rozlicz zablokowany termin','<p style="grid-column:1/-1">Termin: '+esc(block.date.slice(0,16))+'. Wybierz klienta i psa. Blokada zmieni się w wizytę, potem wybierzesz usługi i płatność.</p>'+selectField('blockClient','Klient',[[0,'Wybierz klienta'],...clients.map(c=>[c.id,c.name]),['__new_client','+ Dodaj klienta']],draft.clientId)+selectField('blockDog','Pies',[[0,draft.clientId?'Wybierz psa':'Najpierw wybierz klienta'],...dogs.map(d=>[d.id,d.name]),['__new_dog','+ Dodaj psa']],draft.dogId),async values=>{
   const dog=data.dogs.find(d=>Number(d.id)===Number(values.blockDog)&&Number(d.clientId)===Number(values.blockClient));
   if(!dog)throw new Error('Wybierz klienta i jego psa.');
   const result=await api('blockvisit',{id,dogId:dog.id});await checkoutVisit(result.id);
@@ -164,8 +166,19 @@ function blockCheckoutForm(id){
  });
  $('modalSave').textContent='Przypisz i przejdź do usług';
  $('f_blockClient').addEventListener('change',()=>{
-  const dogs=data.dogs.filter(d=>Number(d.clientId)===Number($('f_blockClient').value));
-  $('f_blockDog').innerHTML='<option value="0">Wybierz psa</option>'+dogs.map(d=>'<option value="'+Number(d.id)+'">'+esc(d.name)+'</option>').join('');
+  const value=$('f_blockClient').value;
+  if(value==='__new_client'){
+   clientForm(0,{onSaved:clientId=>{draft.clientId=clientId;draft.dogId=0;blockCheckoutForm(id,draft);}});
+   modalBack=()=>blockCheckoutForm(id,draft);
+  }else{draft.clientId=Number(value);draft.dogId=0;blockCheckoutForm(id,draft);}
+ });
+ $('f_blockDog').addEventListener('change',()=>{
+  const value=$('f_blockDog').value;
+  if(value==='__new_dog'){
+   if(!draft.clientId){$('modalError').textContent='Najpierw wybierz lub dodaj klienta.';$('f_blockDog').value='0';return;}
+   dogForm(0,{clientId:draft.clientId,onSaved:(dogId,clientId)=>{draft.clientId=clientId;draft.dogId=dogId;blockCheckoutForm(id,draft);}});
+   modalBack=()=>blockCheckoutForm(id,draft);
+  }else draft.dogId=Number(value);
  });
 }
 async function blockForm(from=today()){
