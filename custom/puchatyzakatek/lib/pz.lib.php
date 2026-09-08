@@ -203,7 +203,7 @@ function pz_data() {
     $map=array();foreach($payments as $m)$map[$m['object_key']]=json_decode($m['payload'],true);
     foreach($visits as &$v)$v['paymentState']=$map[$v['rowid']]??array('received'=>false,'date'=>null);
     unset($v);
-    return array('archivedClients'=>$archivedClients,'archivedDogs'=>$archivedDogs,'clients'=>$clients,'dogs'=>$dogs,'visits'=>$visits,'expenses'=>$expenses,'config'=>pz_config());
+    return array('blocks'=>pz_booking_blocks(),'archivedClients'=>$archivedClients,'archivedDogs'=>$archivedDogs,'clients'=>$clients,'dogs'=>$dogs,'visits'=>$visits,'expenses'=>$expenses,'config'=>pz_config());
 }
 
 function pz_write_lock() { return ($_SERVER['REQUEST_METHOD']??'GET')==='POST' ? ' FOR UPDATE' : ''; }

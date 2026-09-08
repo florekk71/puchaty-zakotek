@@ -40,6 +40,7 @@ try {
         if (!pz_can_write()) pz_reply(array('error'=>'Brak uprawnień do dodawania wizyt.'),403);
         pz_reply(pz_booking_next((string)GETPOST('from','alphanohtml')));
     }
+    if ($action==='blockslots' && !$write) pz_reply(array('day'=>pz_booking_calendar((string)GETPOST('from','alphanohtml'),pz_portal_config())[0]));
     if ($action==='data' && !$write) pz_reply(pz_data());
     if ($action==='receipt' && !$write) {
         $v=pz_visit(GETPOSTINT('id'));
@@ -92,6 +93,11 @@ try {
             $result['documentId']=$document['id'];$result['documentNumber']=$savedDocument['number'];
         }
         pz_put('sale',$data['requestKey'],$result);break;
+    case 'block':
+        $key=pz_text($data,'requestKey',64,true);$saved=pz_store('block_request',$key);
+        if($saved){$result=$saved;break;}
+        $result=pz_booking_block_save($data);pz_put('block_request',$key,$result);break;
+    case 'unblock': $result=pz_booking_block_release($data);break;
     case 'plan':
         $dog=pz_dog($data['dogId']??0); $date=pz_booking_assert($data['date']??'');
         pz_query('INSERT INTO '.MAIN_DB_PREFIX.'pz_visit (fk_soc,fk_dog,visit_date,status,notes,datec) VALUES ('.(int)$dog['fk_soc'].','.(int)$dog['rowid'].','.pz_q($date).",'planned',".pz_q(pz_text($data,'notes',5000)).',NOW())');

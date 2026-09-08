@@ -148,6 +148,16 @@ function earliestReservation(){
  return parts.year+'-'+parts.month+'-'+parts.day+'T'+parts.hour+':'+parts.minute;
 }
 function reservationField(value){return field('date','Termin (czas polski)',value,'datetime-local','required min="'+earliestReservation()+'"')+'<p class="muted">Rezerwacja najwcześniej za godzinę.</p>';}
+async function blockForm(from=today()){
+ if(!canWrite())return;
+ const result=await api('blockslots',undefined,{from}),slots=result.day.slots.filter(s=>s.available),key=crypto.randomUUID();
+ modal('Zablokuj terminy',field('blockDay','Dzień',from,'date','required min="'+today()+'"')+'<p class="muted">Zaznacz okienka po 3 godziny. Będą niedostępne dla klientów.</p>'+slots.map((s,i)=>'<label class="payment-check"><input type="checkbox" name="block_'+i+'"> '+esc(s.start)+'–'+esc(s.end)+'</label>').join('')+(slots.length?'':'<p>Brak wolnych okienek w tym dniu.</p>'),slots.length?async()=>{
+  const dates=slots.filter((s,i)=>$('modalFields').querySelector('[name="block_'+i+'"]').checked).map(s=>s.date);
+  if(!dates.length)throw new Error('Zaznacz co najmniej jedno okienko.');
+  await api('block',{dates,requestKey:key});await refresh();message('Wybrane terminy zostały zablokowane.');
+ }:null);
+ $('f_blockDay').addEventListener('change',async e=>{const day=e.target.value;if(!day)return;try{await blockForm(day);}catch(err){$('modalError').textContent=err.message;}});
+}
 let findingAppointment=false;
 async function planForm(selectedDate){
   if(!canWrite()){message('Brak uprawnień do dodawania wizyt.',true);return;}
@@ -247,6 +257,8 @@ document.addEventListener('click',async event=>{
     if(b.dataset.service)addToCart(b.dataset.service);
     if(b.dataset.remove!==undefined){cart.splice(Number(b.dataset.remove),1);requestKey=crypto.randomUUID();renderCart();}
     if(b.dataset.editVisit)editVisit(Number(b.dataset.editVisit));
+    if(b.dataset.blockDate){await blockForm(b.dataset.blockDate);return;}
+    if(b.dataset.unblock){const id=b.dataset.unblock;modal('Zwolnij termin','<p>Okienko ponownie będzie dostępne do rezerwacji.</p>',async()=>{await api('unblock',{id});await refresh();message('Termin zwolniony.');});return;}
     if(b.dataset.planDate)await planForm(b.dataset.planDate);
     if(b.dataset.calendarShift)shiftCalendar(Number(b.dataset.calendarShift));
     if(b.dataset.editDog)dogForm(b.dataset.editDog);
@@ -257,6 +269,7 @@ document.addEventListener('click',async event=>{
     if(b.dataset.paid){const id=Number(b.dataset.paid);modal('Zarejestruj otrzymaną wpłatę',field('date','Data otrzymania',today(),'date','required'),async values=>{await api('paid',{id,...values});await refresh();message('Wpłata zarejestrowana.');});}
     const action=b.dataset.action;
     if(action==='calendar-today'){$('calendarDate').value=today();salonCalendarDay=today();renderCalendar();}
+    if(action==='block'){await blockForm();return;}
     if(action==='dog')dogForm();if(action==='plan')await planForm();if(action==='expense')expenseForm();
     if(action==='client')clientForm();
     if(b.dataset.editClient)clientForm(Number(b.dataset.editClient));
@@ -299,10 +312,12 @@ function renderCalendar(){
  for(let i=0;i<days;i++){
   const d=new Date(start);d.setDate(d.getDate()+i);const iso=calendarIso(d);dates.push(iso);
   const visits=data.visits.filter(v=>v.visit_date.slice(0,10)===iso&&v.status!=='cancelled').sort((a,b)=>a.visit_date.localeCompare(b.visit_date));
+  const blocks=(data.blocks||[]).filter(b=>b.date.slice(0,10)===iso).sort((a,b)=>a.date.localeCompare(b.date));
+  const blockHtml=blocks.map(b=>'<article class="calendar-event salon-block"><strong>'+esc(b.date.slice(11,16))+' · Zablokowane</strong><p>'+esc(b.by)+'</p>'+(canWrite()?'<button class="btn ghost" data-unblock="'+esc(b.id)+'">Zwolnij termin</button>':'')+'</article>').join('');
   const weekday=esc(d.toLocaleDateString('pl-PL',{weekday:'short'}));
   tabHtml.push('<button type="button" class="salon-mobile-day" data-salon-select-day="'+iso+'" aria-label="'+esc(d.toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'}))+', wizyty: '+visits.length+'"><span>'+weekday+'</span><strong>'+d.getDate()+'</strong><small>'+visits.length+'</small></button>');
   const events=visits.map(v=>'<article class="calendar-event '+visitStatusClass(v.status)+'"><div class="salon-event-top"><time class="salon-event-time">'+esc(v.visit_date.slice(11,16))+'</time>'+visitStatusBadge(v.status)+'</div><strong class="salon-event-dog">'+esc(v.dog)+'</strong><div class="salon-event-client">'+esc(v.client)+'</div>'+(v.notes?'<p class="salon-event-notes">'+esc(v.notes)+'</p>':'')+(canWrite()&&v.status==='planned'?'<div class="salon-event-actions"><button class="btn soft" data-checkout="'+Number(v.rowid)+'">Rozlicz ↗</button><button class="btn ghost" data-edit-visit="'+Number(v.rowid)+'">Edytuj termin</button><button class="btn ghost" data-cancel="'+Number(v.rowid)+'">Odwołaj wizytę</button></div>':'')+'</article>').join('');
-  html.push('<section data-salon-day="'+iso+'" class="calendar-day'+(visits.length?'':' calendar-day-empty')+'"><div class="salon-day-heading"><h4><span>'+weekday+'</span><b class="'+(iso===today()?'salon-today':'')+'">'+d.getDate()+'</b><small>'+esc(d.toLocaleDateString('pl-PL',{month:'short'}))+'</small></h4><span class="salon-day-count">Wizyty: '+visits.length+'</span></div>'+events+(visits.length?'':'<p class="calendar-empty"><span aria-hidden="true">—</span>Brak wizyt</p>')+(canWrite()?'<button class="btn ghost salon-add-visit" data-plan-date="'+iso+'">+ Dodaj wizytę</button>':'')+'</section>');
+  html.push('<section data-salon-day="'+iso+'" class="calendar-day'+(visits.length?'':' calendar-day-empty')+'"><div class="salon-day-heading"><h4><span>'+weekday+'</span><b class="'+(iso===today()?'salon-today':'')+'">'+d.getDate()+'</b><small>'+esc(d.toLocaleDateString('pl-PL',{month:'short'}))+'</small></h4><span class="salon-day-count">Wizyty: '+visits.length+'</span></div>'+events+blockHtml+(visits.length||blocks.length?'':'<p class="calendar-empty"><span aria-hidden="true">—</span>Brak wizyt</p>')+(canWrite()?'<button class="btn ghost salon-add-visit" data-plan-date="'+iso+'">+ Dodaj wizytę</button><button class="btn ghost salon-add-visit" data-block-date="'+iso+'">Zablokuj termin</button>':'')+'</section>');
  }
  board.innerHTML=html.join('');tabs.innerHTML=tabHtml.join('');
  if(!dates.includes(salonCalendarDay))salonCalendarDay=dates.includes($('calendarDate').value)?$('calendarDate').value:dates.includes(today())?today():dates[0];

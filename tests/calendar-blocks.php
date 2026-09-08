@@ -1,0 +1,20 @@
+<?php
+require __DIR__.'/portal.php';
+$user=(object)['id'=>7,'firstname'=>'Malwina','lastname'=>'Florek','login'=>'Malwina.Florek'];
+$now=new DateTimeImmutable('2026-09-08 08:00:00',new DateTimeZone('Europe/Warsaw'));
+$db->query('DELETE FROM llx_pz_visit');
+$input=['requestKey'=>'test-block-request-0001','dates'=>['2026-09-09 09:00:00','2026-09-09 12:00:00']];
+pz_portal_tx(fn()=>pz_booking_block_save($input,$c,$now));
+ok(count(pz_booking_blocks())===2,'Two blocks not saved');
+ok(count(pz_rows('SELECT rowid FROM llx_pz_visit'))===0,'Block creates fake visit');
+$calendar=pz_booking_calendar('2026-09-09',$c,$now)[0];
+ok(!$calendar['slots'][0]['available']&&!$calendar['slots'][1]['available']&&$calendar['slots'][2]['available'],'Public capacity ignores blocks');
+ok(!str_contains(json_encode($calendar),'Malwina')&&!str_contains(json_encode($calendar),'test-block'),'Public block identity leak');
+rejects(fn()=>pz_portal_tx(fn()=>pz_booking_assert('2026-09-09 10:00:00',0,true,$c,$now)),'Staff overlaps block');
+ok(pz_booking_next('2026-09-09',$c,$now)['date']==='2026-09-09 15:00:00','Suggested slot ignores blocks');
+$first=pz_booking_blocks()[0];pz_portal_tx(fn()=>pz_booking_block_release(['id'=>$first['id']]));
+ok(pz_booking_calendar('2026-09-09',$c,$now)[0]['slots'][0]['available'],'Release did not free slot');
+$conf->entity=2;ok(count(pz_booking_blocks())===0,'Other entity sees blocks');rejects(fn()=>pz_booking_block_release(['id'=>$first['id']]),'Other entity releases block');$conf->entity=1;
+$bad=['requestKey'=>'test-block-request-0002','dates'=>['2026-09-09 09:00:00','2026-09-09 12:00:00']];rejects(fn()=>pz_portal_tx(fn()=>pz_booking_block_save($bad,$c,$now)),'Occupied slot accepted');ok(count(pz_booking_blocks())===1,'Partial batch persisted');
+$off=['requestKey'=>'test-block-request-0003','dates'=>['2026-09-09 10:00:00']];rejects(fn()=>pz_portal_tx(fn()=>pz_booking_block_save($off,$c,$now)),'Non-grid slot accepted');
+echo "PASS: block two slots, anonymous public availability, staff overlap, suggestion, release, entity isolation, atomic batch.\n";

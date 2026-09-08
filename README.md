@@ -173,3 +173,7 @@ Panel pracowników używa kolorystyki i typografii portalu klienta: spokojna zie
 ### Faktura opcjonalna przy rozliczeniu
 
 Przy płatności opcja „Wystaw fakturę” jest domyślnie wyłączona. Rozliczenie zapisuje wizytę i płatność oraz udostępnia potwierdzenie 80 mm bez wymagania adresu nabywcy. Zaznaczenie opcji tworzy fakturę w tej samej transakcji i wymaga danych nabywcy. Fakturę można też wystawić później z dokumentów rozliczonej wizyty. Ponowienie zapisanej operacji zwraca pierwotny wynik, nie wystawia dodatkowej faktury.
+
+### Blokowanie okienek bez klienta
+
+Pracownik z prawem zapisu modułu może użyć „Zablokuj termin” w terminarzu, wybrać dzień i zaznaczyć od 1 do 3 dostępnych okienek po 3 godziny. Blokady obowiązują cały salon: portal, dodawanie wizyt i podpowiedź najbliższego terminu. Kafelek blokady zawiera nazwisko pracownika i przycisk „Zwolnij termin”. Publicznie widoczna jest tylko zajętość. Blokady są zapisane oddzielnie od wizyt, nie generują sprzedaży, dokumentów ani wiadomości do klientów. Operacja kilku blokad jest atomowa i używa wspólnej blokady transakcyjnej z rezerwacjami. Dane mieszczą się w istniejącej tabeli pz_store.

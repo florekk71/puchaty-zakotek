@@ -46,7 +46,11 @@ function pz_booking_conflict($date,$rows,$exclude=0) {
 }
 function pz_booking_rows($from,$to) {
     // No staff salesperson scope: capacity belongs to the whole salon/entity.
-    return pz_rows('SELECT v.rowid,v.visit_date,v.status FROM '.MAIN_DB_PREFIX.'pz_visit v JOIN '.MAIN_DB_PREFIX.'societe s ON s.rowid=v.fk_soc WHERE s.entity='.pz_entity()." AND v.status IN ('planned','completed') AND v.visit_date>=".pz_q($from).' AND v.visit_date<'.pz_q($to));
+    $rows=pz_rows('SELECT v.rowid,v.visit_date,v.status FROM '.MAIN_DB_PREFIX.'pz_visit v JOIN '.MAIN_DB_PREFIX.'societe s ON s.rowid=v.fk_soc WHERE s.entity='.pz_entity()." AND v.status IN ('planned','completed') AND v.visit_date>=".pz_q($from).' AND v.visit_date<'.pz_q($to));
+    foreach(pz_booking_blocks() as $block) if($block['date']>=$from && $block['date']<$to) {
+        $rows[]=array('rowid'=>-1,'visit_date'=>$block['date'],'status'=>'planned');
+    }
+    return $rows;
 }
 function pz_booking_assert($date,$exclude=0,$checkLead=true,$c=null,$now=null) {
     $c=$c??pz_portal_config();$zone=new DateTimeZone('Europe/Warsaw');$now=$now??new DateTimeImmutable('now',$zone);
@@ -79,4 +83,37 @@ function pz_booking_calendar($from,$c,$now=null) {
         $days[]=array('date'=>$day,'slots'=>$slots,'busy'=>$busy,'closed'=>!$window,'full'=>count($busy)>=3);
     }
     return $days;
+}
+
+function pz_booking_blocks() {
+    return array_values(array_filter(pz_records('calendar_block'),function($b){return !empty($b['active']);}));
+}
+// Called inside the shared salon transaction/lock, like staff and portal bookings.
+function pz_booking_block_save($input,$c=null,$now=null) {
+    global $user;
+    $c=$c??pz_portal_config();$dates=$input['dates']??array();
+    if(!is_array($dates)||count($dates)<1||count($dates)>3)throw new InvalidArgumentException('Wybierz od 1 do 3 okienek.');
+    $dates=array_values(array_unique($dates));$day=null;
+    foreach($dates as $date){
+        $date=pz_date($date,true);$iso=substr($date,0,10);
+        if($day!==null&&$day!==$iso)throw new InvalidArgumentException('Wybierz okienka z jednego dnia.');$day=$iso;
+        $available=pz_booking_calendar($iso,$c,$now)[0]['slots'];
+        $found=false;foreach($available as $slot)if($slot['date']===$date&&$slot['available'])$found=true;
+        if(!$found)throw new InvalidArgumentException('Okienko jest już zajęte lub niedostępne. Odśwież terminarz.');
+    }
+    $group=pz_text($input,'requestKey',64,true);
+    if(!preg_match('/^[a-zA-Z0-9-]{16,64}$/D',$group))throw new InvalidArgumentException('Nieprawidłowy identyfikator.');
+    foreach($dates as $date){
+        pz_booking_assert($date,0,true,$c,$now);
+        $key=$group.'-'.str_replace(array('-',' ',':','T'),'',$date);
+        pz_put('calendar_block',$key,array('id'=>$key,'date'=>pz_date($date,true),'active'=>true,'userId'=>(int)$user->id,'by'=>(string)(trim(($user->firstname??'').' '.($user->lastname??''))?:$user->login)));
+    }
+    return array('ok'=>true);
+}
+function pz_booking_block_release($input){
+    global $user;
+    $id=pz_text($input,'id',128,true);$b=pz_store('calendar_block',$id);
+    if(!$b)throw new InvalidArgumentException('Nie znaleziono blokady.');
+    $b['active']=false;$b['releasedBy']=(int)$user->id;$b['releasedAt']=date('c');pz_put('calendar_block',$id,$b);
+    return array('ok'=>true);
 }
