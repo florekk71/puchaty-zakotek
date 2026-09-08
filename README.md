@@ -4,6 +4,18 @@ Wersja 0.5.5. Obsługa salonu pielęgnacji psów: klienci, kartoteki psów, term
 
 Repozytorium zawiera kod projektu. Nie zawiera kont użytkowników, haseł, klientów, wizyt, wystawionych dokumentów ani kopii bazy. Logo i kolorystyka salonu pozostają w kodzie. Dane sprzedawcy należy skonfigurować po instalacji lub przenieść prywatnie z bazą.
 
+## Logo na ekranie logowania
+
+Dockerfile instaluje logo Puchatego Zakątka zamiast logo Dolibarra i usuwa widoczny nagłówek z wersją Dolibarra. Nie zmienia mechanizmu uwierzytelniania. Po pobraniu aktualizacji uruchom `docker compose up -d --build dolibarr`, a następnie odśwież stronę Ctrl+F5.
+
+Na dotychczasowej instalacji Windows w `C:\PuchatyZakatek` można zamiast przebudowy obrazu uruchomić z pobranego repozytorium:
+
+```powershell
+& .\deploy\install-login.ps1 -ProjectRoot C:\PuchatyZakatek
+```
+
+Skrypt robi kopię Compose i szablonu, sprawdza składnię zmienionego PHP, dodaje trwałe montowanie szablonu i odtwarza kontener Dolibarra. W razie błędu przywraca Compose i poprzedni montowany szablon. Przerywa działanie przy nieznanym układzie szablonu lub innym istniejącym montowaniu. Zmiana nie wymaga edycji bazy. Po późniejszej aktualizacji wersji Dolibarra trzeba ponownie sprawdzić zgodność szablonu; montowanie zachowuje wersję z chwili instalacji.
+
 ## Nowa instalacja na serwerze z Docker Compose
 
 1. Pobierz lub sklonuj repozytorium i wejdź do jego katalogu.
