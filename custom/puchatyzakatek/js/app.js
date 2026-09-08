@@ -195,7 +195,7 @@ function acceptSale(result){
   sessionStorage.removeItem(boot.storageKey);pendingSale=null;$('retrySale').hidden=true;$('retryConfirmedSale').hidden=true;$('discardPendingSale').hidden=true;
   lastReceipt=Number(result.id);cart=[];plannedVisit=0;activeDog=null;activeClient=null;requestKey=crypto.randomUUID();renderCart();
   saving=false;goToStage('client');$('lastReceiptButton').hidden=false;
-  $('lastDocumentButton').hidden=false;message('Zapisano wizytę nr '+lastReceipt+(result.documentNumber?' i dokument '+result.documentNumber:'')+'. Kwota: '+money(result.total)+'. Potwierdzenie 80 mm jest gotowe do wydruku.');
+  $('issueInvoice').checked=false;$('issueInvoice').disabled=false;$('lastDocumentButton').hidden=!result.documentId;message('Zapisano wizytę nr '+lastReceipt+(result.documentNumber?' i dokument '+result.documentNumber:'')+'. Kwota: '+money(result.total)+'. Potwierdzenie 80 mm jest gotowe do wydruku.');
 }
 async function checkPendingSale(){
   if(saving)return;if(!pendingSale){$('retrySale').hidden=true;return;}
@@ -214,7 +214,8 @@ async function finishSale(){
   if(!pendingSale&&(!activeClient||!activeDog||!cart.length)){message('Wybierz klienta, psa i co najmniej jedną usługę.',true);return;}
   saving=true;$('finishSale').disabled=true;$('retryConfirmedSale').disabled=true;
   try{
-    if(!pendingSale)pendingSale={clientId:activeClient.id,dogId:activeDog.id,visitId:plannedVisit,items:cart.map(s=>({id:s.id,price:s.price})),payment,received:$('paymentReceived').checked,requestKey};
+    if(!pendingSale)pendingSale={clientId:activeClient.id,dogId:activeDog.id,visitId:plannedVisit,items:cart.map(s=>({id:s.id,price:s.price})),payment,received:$('paymentReceived').checked,issueInvoice:$('issueInvoice').checked,requestKey};
+    $('issueInvoice').checked=pendingSale.issueInvoice===true;$('issueInvoice').disabled=true;
     sessionStorage.setItem(boot.storageKey,JSON.stringify(pendingSale));
     const result=await api('sale',pendingSale);acceptSale(result);await refresh();
   }catch(e){$('retrySale').hidden=!pendingSale;$('retryConfirmedSale').hidden=true;message('Nie potwierdzono zapisu: '+e.message+(pendingSale?' Dane zachowano. Użyj „Sprawdź wynik zapisu” — sprawdzenie nie tworzy nowej wizyty.':''),true);}
@@ -311,7 +312,7 @@ function renderCalendar(){
 $('calendarMobileDays').addEventListener('click',e=>{const button=e.target.closest('[data-salon-select-day]');if(button)salonSelectDay(button.dataset.salonSelectDay);});
 ['calendarMode','calendarDate'].forEach(id=>$(id).addEventListener('change',()=>{if(id==='calendarDate')salonCalendarDay=$('calendarDate').value;if(data)renderCalendar();}));
 
-function clearAbortedSale(){sessionStorage.removeItem(boot.storageKey);pendingSale=null;saving=false;cart=[];activeClient=null;activeDog=null;plannedVisit=0;requestKey=crypto.randomUUID();renderCart();$('retrySale').hidden=true;$('retryConfirmedSale').hidden=true;$('discardPendingSale').hidden=true;goToStage('client');message('Niezapisany koszyk został zamknięty. Możesz rozliczyć wizytę od nowa.');}
+function clearAbortedSale(){$('issueInvoice').checked=false;$('issueInvoice').disabled=false;sessionStorage.removeItem(boot.storageKey);pendingSale=null;saving=false;cart=[];activeClient=null;activeDog=null;plannedVisit=0;requestKey=crypto.randomUUID();renderCart();$('retrySale').hidden=true;$('retryConfirmedSale').hidden=true;$('discardPendingSale').hidden=true;goToStage('client');message('Niezapisany koszyk został zamknięty. Możesz rozliczyć wizytę od nowa.');}
 function discardPendingSale(){if(!pendingSale||saving)return;modal('Zamknij niezapisany koszyk','<p>Sprawdzimy bazę i zamkniemy tę próbę zapisu. Zapisana sprzedaż nie zostanie usunięta. Planowana wizyta pozostanie w terminarzu.</p>',async()=>{const r=await api('abortsale',{requestKey:pendingSale.requestKey});if(r.state==='saved')acceptSale(r);else if(r.state==='aborted')clearAbortedSale();else throw new Error('Nie potwierdzono zamknięcia koszyka.');await refresh();});}
 
 function clientForm(id=0,context={}){

@@ -81,9 +81,16 @@ try {
         if ($old===null) pz_query('INSERT INTO '.MAIN_DB_PREFIX.'pz_store (entity,kind,object_key,payload,datec) VALUES ('.pz_entity().",'sale',".pz_q($key).",'{\"aborted\":true}',NOW())");
         elseif (empty($old['aborted'])) throw new InvalidArgumentException('Operacja w toku. Sprawdź wynik ponownie.');
         $result=array('state'=>'aborted');break;
-    case 'sale': $result=pz_sale($data);pz_stock_apply('sale-'.$data['requestKey'],array_map(function($s){return array('productId'=>$s['id'],'qty'=>1000);},$data['items']));
-        $document=pz_document_from_visit(array('id'=>$result['id']));$savedDocument=pz_store('document',$document['id']);
-        $result['documentId']=$document['id'];$result['documentNumber']=$savedDocument['number'];
+    case 'sale':
+        // A retry returns the original result, including its invoice choice.
+        $previous=pz_store('sale',pz_text($data,'requestKey',64,true));
+        if (!empty($previous['id'])) { pz_visit($previous['id']); $result=$previous; break; }
+        $result=pz_sale($data);
+        pz_stock_apply('sale-'.$data['requestKey'],array_map(function($s){return array('productId'=>$s['id'],'qty'=>1000);},$data['items']));
+        if (($data['issueInvoice']??false)===true) {
+            $document=pz_document_from_visit(array('id'=>$result['id']));$savedDocument=pz_store('document',$document['id']);
+            $result['documentId']=$document['id'];$result['documentNumber']=$savedDocument['number'];
+        }
         pz_put('sale',$data['requestKey'],$result);break;
     case 'plan':
         $dog=pz_dog($data['dogId']??0); $date=pz_booking_assert($data['date']??'');

@@ -169,3 +169,7 @@ Panel pracowników używa kolorystyki i typografii portalu klienta: spokojna zie
 ### Najbliższy wolny termin w panelu
 
 „Nowa wizyta” automatycznie podpowiada pierwszy wolny trzygodzinny przedział zgodny z kalendarzem portalu. Dodawanie z kafelka dnia szuka od wybranego dnia. Wyszukiwanie uwzględnia wszystkie wizyty salonu, limit 3 psów dziennie, godzinę wyprzedzenia, godziny pracy i dni wolne z konfiguracji `portal-config.ini` oraz `days_ahead`. Brak godzin pracy lub wolnych miejsc pozostawia pole terminu puste z komunikatem. Samo wyszukanie nie rezerwuje miejsca; zapis ponownie sprawdza dostępność.
+
+### Faktura opcjonalna przy rozliczeniu
+
+Przy płatności opcja „Wystaw fakturę” jest domyślnie wyłączona. Rozliczenie zapisuje wizytę i płatność oraz udostępnia potwierdzenie 80 mm bez wymagania adresu nabywcy. Zaznaczenie opcji tworzy fakturę w tej samej transakcji i wymaga danych nabywcy. Fakturę można też wystawić później z dokumentów rozliczonej wizyty. Ponowienie zapisanej operacji zwraca pierwotny wynik, nie wystawia dodatkowej faktury.

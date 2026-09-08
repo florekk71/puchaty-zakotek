@@ -386,7 +386,7 @@ $pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>
                 <button class="pay" data-pay="BLIK">📱 BLIK</button>
                 <button class="pay" data-pay="Przelew">🏦 Przelew</button>
               </div>
-              <label class="payment-check"><input type="checkbox" id="paymentReceived" checked> Potwierdzam otrzymanie pełnej wpłaty</label><div class="finish">
+              <label class="payment-check"><input type="checkbox" id="paymentReceived" checked> Potwierdzam otrzymanie pełnej wpłaty</label><label class="payment-check"><input type="checkbox" id="issueInvoice"> Wystaw fakturę (opcjonalnie — wymaga danych i adresu nabywcy)</label><div class="finish">
                 
                 <button id="finishSale" data-write class="btn primary" onclick="finishSale()">✓ Zakończ sprzedaż</button>
               </div>
@@ -428,6 +428,6 @@ $pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>
 </div>
 
 <script type="application/json" id="pzBoot"><?php echo json_encode($pzBoot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE); ?></script>
-<script src="js/app.js?v=0.6.4-client-fields"></script><script src="js/reports.js?v=0.5.5"></script><script src="js/visit-reports.js?v=0.5.5"></script><script src="js/commerce.js?v=0.6.5-cost-labels"></script>
+<script src="js/app.js?v=0.6.6-optional-invoice"></script><script src="js/reports.js?v=0.5.5"></script><script src="js/visit-reports.js?v=0.5.5"></script><script src="js/commerce.js?v=0.6.5-cost-labels"></script>
 </body>
 </html>
