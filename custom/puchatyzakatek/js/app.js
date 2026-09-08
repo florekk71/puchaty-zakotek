@@ -141,9 +141,16 @@ function dogForm(id,context={}){
   modal(d.id?'Kartoteka psa':'Dodaj psa',html,canWrite()?async values=>{const saved=await api('dog',{...values,id:d.id||0});d.id=Number(saved.id);await refresh();if(activeClient)renderPosDogs();message('Kartoteka psa zapisana w bazie.');if(context.onSaved){context.onSaved(d.id,Number(values.clientId));return false;}}:null);
   if(!canWrite())$('modalFields').querySelectorAll('input,textarea,select').forEach(e=>e.disabled=true);
 }
+function earliestReservation(){
+ const d=new Date(Math.ceil((Date.now()+3600000)/60000)*60000);
+ const parts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Warsaw',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(d).map(p=>[p.type,p.value]));
+ return parts.year+'-'+parts.month+'-'+parts.day+'T'+parts.hour+':'+parts.minute;
+}
+function reservationField(value){return field('date','Termin (czas polski)',value,'datetime-local','required min="'+earliestReservation()+'"')+'<p class="muted">Rezerwacja najwcześniej za godzinę.</p>';}
 function planForm(selectedDate){
   if(!canWrite()){message('Brak uprawnień do dodawania wizyt.',true);return;}
   const draft={clientId:Number(activeClient?.id||data.clients[0]?.id||0),dogId:0,date:(selectedDate||$('calendarDate').value||today())+'T09:00',notes:''};
+  if(draft.date<earliestReservation())draft.date=earliestReservation();
   planDraftForm(draft);
 }
 function planDraftForm(draft){
@@ -151,7 +158,7 @@ function planDraftForm(draft){
   if(!dogs.some(d=>Number(d.id)===Number(draft.dogId)))draft.dogId=Number(dogs[0]?.id||0);
   const clients=[[0,'Wybierz klienta'],...data.clients.map(c=>[c.id,c.name]),['__new_client','+ Dodaj klienta']];
   const choices=[[0,'Wybierz psa'],...dogs.map(d=>[d.id,d.name]),['__new_dog','+ Dodaj psa']];
-  modal('Nowa wizyta',selectField('clientId','Klient',clients,draft.clientId)+selectField('dogId','Pies tego klienta',choices,draft.dogId)+field('date','Termin',draft.date,'datetime-local','required')+noteField('notes','Uwagi',draft.notes),async values=>{
+  modal('Nowa wizyta',selectField('clientId','Klient',clients,draft.clientId)+selectField('dogId','Pies tego klienta',choices,draft.dogId)+reservationField(draft.date)+noteField('notes','Uwagi',draft.notes),async values=>{
     const dog=data.dogs.find(d=>Number(d.id)===Number(values.dogId)&&Number(d.clientId)===Number(values.clientId));
     if(!dog)throw new Error('Wybierz klienta i jego psa albo dodaj ich z listy.');
     await api('plan',{dogId:dog.id,date:values.date,notes:values.notes});await refresh();message('Termin zapisany.');
@@ -270,7 +277,7 @@ function tick(){$('clock').textContent=new Date().toLocaleTimeString('pl-PL',{ho
 function calendarIso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function calendarStart(){const d=new Date(($('calendarDate').value||today())+'T12:00:00');if($('calendarMode').value==='week')d.setDate(d.getDate()-((d.getDay()+6)%7));return d;}
 function shiftCalendar(direction){const d=calendarStart();d.setDate(d.getDate()+direction*($('calendarMode').value==='week'?7:1));$('calendarDate').value=calendarIso(d);renderCalendar();}
-function editVisit(id){const v=data.visits.find(x=>Number(x.rowid)===id);if(!v||v.status!=='planned'||!canWrite())return;modal('Edytuj termin wizyty',field('date','Termin',v.visit_date.slice(0,16).replace(' ','T'),'datetime-local','required')+noteField('notes','Uwagi',v.notes),async values=>{await api('reschedule',{id,...values});await refresh();message('Termin wizyty zaktualizowany.');});}
+function editVisit(id){const v=data.visits.find(x=>Number(x.rowid)===id);if(!v||v.status!=='planned'||!canWrite())return;modal('Edytuj termin wizyty',reservationField(v.visit_date.slice(0,16).replace(' ','T'))+noteField('notes','Uwagi',v.notes),async values=>{await api('reschedule',{id,...values});await refresh();message('Termin wizyty zaktualizowany.');});}
 function renderCalendar(){
  const mode=$('calendarMode').value,board=$('calendarBoard');board.hidden=mode==='list';$('visitList').parentElement.open=mode==='list';if(mode==='list'){$('calendarRange').textContent='Lista według filtrów Od / Do';return;}
  const start=calendarStart(),days=mode==='week'?7:1,html=[];board.className='calendar-board'+(days===1?' single':'');

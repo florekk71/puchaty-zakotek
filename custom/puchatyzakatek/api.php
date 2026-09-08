@@ -1,6 +1,7 @@
 <?php
 require '../../main.inc.php';
 require_once __DIR__.'/lib/pz.lib.php';
+require_once __DIR__.'/lib/reservation.lib.php';
 require_once __DIR__.'/lib/client.lib.php';
 require_once __DIR__.'/lib/commerce.lib.php';
 require_once __DIR__.'/lib/ndg.lib.php';
@@ -76,13 +77,13 @@ try {
         $result['documentId']=$document['id'];$result['documentNumber']=$savedDocument['number'];
         pz_put('sale',$data['requestKey'],$result);break;
     case 'plan':
-        $dog=pz_dog($data['dogId']??0); $date=pz_date($data['date']??'',true);
+        $dog=pz_dog($data['dogId']??0); $date=pz_reservation_date($data['date']??'');
         pz_query('INSERT INTO '.MAIN_DB_PREFIX.'pz_visit (fk_soc,fk_dog,visit_date,status,notes,datec) VALUES ('.(int)$dog['fk_soc'].','.(int)$dog['rowid'].','.pz_q($date).",'planned',".pz_q(pz_text($data,'notes',5000)).',NOW())');
         $result=array('id'=>(int)$db->last_insert_id(MAIN_DB_PREFIX.'pz_visit')); break;
     case 'reschedule':
         $v=pz_visit($data['id']??0);
         if ($v['status']!=='planned') throw new InvalidArgumentException('Można edytować tylko planowaną wizytę.');
-        $date=pz_date($data['date']??'',true);
+        $date=pz_reservation_date($data['date']??'');
         pz_query('UPDATE '.MAIN_DB_PREFIX.'pz_visit SET visit_date='.pz_q($date).',notes='.pz_q(pz_text($data,'notes',5000)).' WHERE rowid='.(int)$v['rowid']." AND status='planned'");
         $result=array('ok'=>true); break;
     case 'cancel':

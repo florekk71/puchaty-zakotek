@@ -427,6 +427,6 @@ $pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>
 </div>
 
 <script type="application/json" id="pzBoot"><?php echo json_encode($pzBoot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE); ?></script>
-<script src="js/app.js?v=0.5.6-calendar-colors"></script><script src="js/reports.js?v=0.5.5"></script><script src="js/visit-reports.js?v=0.5.5"></script><script src="js/commerce.js?v=0.5.5"></script>
+<script src="js/app.js?v=0.5.7-reservation-hour"></script><script src="js/reports.js?v=0.5.5"></script><script src="js/visit-reports.js?v=0.5.5"></script><script src="js/commerce.js?v=0.5.5"></script>
 </body>
 </html>
