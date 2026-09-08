@@ -21,9 +21,14 @@ function pz_mail_owner_save($input){
 }
 function pz_mail_validate($c) {
     $s=$c['smtp']??array();$from=$c['sender']??array();
-    if(empty($s['host'])||preg_match('/[\s\/\\\\]/',(string)$s['host'])||!in_array($s['encryption']??'',array('tls','starttls'),true))throw new RuntimeException('Uzupelnij host SMTP i szyfrowanie tls/starttls.');
-    if((int)($s['port']??0)<1||(int)$s['port']>65535||empty($s['username'])||empty($s['password']))throw new RuntimeException('Uzupelnij port, login i haslo SMTP.');
-    if(empty($s['verify_certificate']))throw new RuntimeException('Weryfikacja certyfikatu SMTP musi byc wlaczona.');
+    if (($s['transport']??'smtp')==='local_relay') {
+        // This deployment's host gateway only; never allow plaintext Internet SMTP.
+        if (($s['host']??'')!=='172.24.0.1'||(int)($s['port']??0)!==25||($s['encryption']??'')!=='none'||!empty($s['username'])||!empty($s['password'])) throw new RuntimeException('Lokalny relay wymaga bramy Docker 172.24.0.1:25 bez uwierzytelniania.');
+    } else {
+        if(empty($s['host'])||preg_match('/[\s\/\\\\]/',(string)$s['host'])||!in_array($s['encryption']??'',array('tls','starttls'),true))throw new RuntimeException('Uzupelnij host SMTP i szyfrowanie tls/starttls.');
+        if((int)($s['port']??0)<1||(int)$s['port']>65535||empty($s['username'])||empty($s['password']))throw new RuntimeException('Uzupelnij port, login i haslo SMTP.');
+        if(empty($s['verify_certificate']))throw new RuntimeException('Weryfikacja certyfikatu SMTP musi byc wlaczona.');
+    }
     foreach(array('address','reply_to') as $key)if(($key==='address'||!empty($from[$key]))&&!filter_var($from[$key]??'',FILTER_VALIDATE_EMAIL))throw new RuntimeException('Nieprawidlowy adres nadawcy lub odpowiedzi.');
     if(preg_match('/[\r\n<>]/',(string)($from['name']??'')))throw new RuntimeException('Nieprawidlowa nazwa nadawcy.');
 }

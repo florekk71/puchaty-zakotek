@@ -41,7 +41,10 @@ function pz_save_client($input) {
     }
     if (!$id) {
         $id = (int) $result;
-        pz_query('INSERT INTO '.MAIN_DB_PREFIX.'societe_commerciaux (fk_soc,fk_user) VALUES ('.$id.','.(int)$user->id.')');
+        // Dolibarr may already assign the creator as this client's sales representative.
+        pz_query('INSERT INTO '.MAIN_DB_PREFIX.'societe_commerciaux (fk_soc,fk_user,fk_c_type_contact_code)'
+            .' SELECT '.$id.','.(int)$user->id.", 'SALESREPTHIRD' WHERE NOT EXISTS (SELECT 1 FROM ".MAIN_DB_PREFIX.'societe_commerciaux'
+            .' WHERE fk_soc='.$id.' AND fk_user='.(int)$user->id." AND fk_c_type_contact_code='SALESREPTHIRD')");
     }
     $meta=pz_store('client_meta',(string)$id)??array();if(array_key_exists('contact',$input))$meta['contact']=pz_text($input,'contact',255);if(isset($input['clientKind']))$meta['clientKind']=$input['clientKind'];pz_put('client_meta',(string)$id,$meta);
     return array('id'=>$id);
