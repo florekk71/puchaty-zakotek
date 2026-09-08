@@ -40,7 +40,14 @@ try {
         if (!pz_can_write()) pz_reply(array('error'=>'Brak uprawnień do dodawania wizyt.'),403);
         pz_reply(pz_booking_next((string)GETPOST('from','alphanohtml')));
     }
-    if ($action==='blockslots' && !$write) pz_reply(array('day'=>pz_booking_calendar((string)GETPOST('from','alphanohtml'),pz_portal_config())[0]));
+    if ($action==='blockslots' && !$write) {
+        $day=pz_booking_calendar((string)GETPOST('from','alphanohtml'),pz_portal_config())[0];
+        $start=new DateTimeImmutable($day['date'],new DateTimeZone('Europe/Warsaw'));
+        $rows=pz_booking_rows($start->format('Y-m-d H:i:s'),$start->modify('+1 day')->format('Y-m-d H:i:s'));
+        $day['visitCount']=count(array_filter($rows,function($r){return (int)$r['rowid']>0;}));
+        $day['blockCount']=count($rows)-$day['visitCount'];
+        pz_reply(array('day'=>$day));
+    }
     if ($action==='data' && !$write) pz_reply(pz_data());
     if ($action==='receipt' && !$write) {
         $v=pz_visit(GETPOSTINT('id'));

@@ -151,10 +151,14 @@ function reservationField(value){return field('date','Termin (czas polski)',valu
 async function blockForm(from=today()){
  if(!canWrite())return;
  const result=await api('blockslots',undefined,{from}),slots=result.day.slots.filter(s=>s.available),key=crypto.randomUUID();
- modal('Zablokuj terminy',field('blockDay','Dzień',from,'date','required min="'+today()+'"')+field('manualBlock','Albo wpisz własną godzinę (blokada 3 godziny)','','time')+'<p class="muted">Zaznacz okienka albo wpisz własną godzinę. Własna godzina zastępuje zaznaczone okienka. Każda blokada trwa 3 godziny.</p>'+slots.map((s,i)=>'<label class="payment-check"><input type="checkbox" name="block_'+i+'"> '+esc(s.start)+'–'+esc(s.end)+'</label>').join('')+(slots.length?'':'<p>Brak wolnych okienek w tym dniu.</p>'),async()=>{
+ const summary=result.day.visitCount===0?'Brak wizyt w tym dniu.':'Liczba wizyt w tym dniu: '+result.day.visitCount+'.';
+ const blocks=result.day.blockCount?' Zablokowane okienka: '+result.day.blockCount+'.':'';
+ const guidance=result.day.closed?'Dzień poza grafikiem portalu — możesz wpisać własną godzinę.':slots.length?'Wybierz standardowe okienka lub wpisz własną godzinę.':'Brak dostępnych standardowych okienek — możesz wpisać własną godzinę. Sprawdzimy zajętość i godzinę wyprzedzenia przy zapisie.';
+
+ modal('Zablokuj terminy',field('blockDay','Dzień',from,'date','required min="'+today()+'"')+field('manualBlock','Albo wpisz własną godzinę (blokada 3 godziny)','','time')+'<p class="muted">Zaznacz okienka albo wpisz własną godzinę. Własna godzina zastępuje zaznaczone okienka. Każda blokada trwa 3 godziny.</p>'+slots.map((s,i)=>'<label class="payment-check"><input type="checkbox" name="block_'+i+'"> '+esc(s.start)+'–'+esc(s.end)+'</label>').join('')+'<p class="muted" style="grid-column:1/-1">'+esc(summary+blocks)+'<br>'+esc(guidance)+'</p>',async()=>{
   const manual=$('f_manualBlock').value;
   const dates=manual?[from+' '+manual+':00']: slots.filter((s,i)=>$('modalFields').querySelector('[name="block_'+i+'"]').checked).map(s=>s.date);
-  if(!dates.length)throw new Error('Zaznacz co najmniej jedno okienko.');
+  if(!dates.length)throw new Error('Zaznacz okienko lub wpisz własną godzinę.');
   await api('block',{dates,manual:!!manual,requestKey:key});await refresh();message('Wybrane terminy zostały zablokowane.');
  });
  $('f_blockDay').addEventListener('change',async e=>{const day=e.target.value;if(!day)return;try{await blockForm(day);}catch(err){$('modalError').textContent=err.message;}});
