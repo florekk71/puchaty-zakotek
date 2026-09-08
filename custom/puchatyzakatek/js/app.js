@@ -1,3 +1,4 @@
+function pzOptionalLimit(value){const n=Number(value);return Number.isFinite(n)&&n>0?n:null;}
 'use strict';
 const boot = JSON.parse(document.getElementById('pzBoot').textContent);
 let token = boot.token, data = null, activeClient = null, activeDog = null;
@@ -118,11 +119,11 @@ function renderReports(){
   $('reportTable').innerHTML=table(['Miesiąc','Wartość wizyt'],Object.entries(months).sort().map(([m,v])=>row([esc(m),money(v)])));
   const d=new Date(),q=Math.floor(d.getMonth()/3)*3,from=`${d.getFullYear()}-${String(q+1).padStart(2,'0')}-01`,end=new Date(d.getFullYear(),q+3,0),to=`${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}`;
   const qr=sum(data.visits.filter(v=>v.status==='completed'&&(v.paymentState.completedDate||v.visit_date.slice(0,10))>=from&&(v.paymentState.completedDate||v.visit_date.slice(0,10))<=to),'amount_total');
-  $('limitInfo').textContent=data.config.quarterLimit===''?'Limit kwartalny nie został ustawiony. Można go wprowadzić w ustawieniach.':`Bieżący kwartał: ${money(qr)} / ${money(data.config.quarterLimit)}. Pozostało: ${money(Math.max(0,data.config.quarterLimit-qr))}.`;
+  $('limitInfo').textContent=pzOptionalLimit(data.config.quarterLimit)===null?'Własny próg kwartalny: nie ustawiono. Ustawowy limit sprawdzisz w NDG i raporty → Ewidencja NDG.':`Własny próg — bieżący kwartał: ${money(qr)} / ${money(data.config.quarterLimit)}. Pozostało: ${money(Math.max(0,data.config.quarterLimit-qr))}.`;
 }
 function renderSettings(){
   const c=data.config;
-  $('settingsFields').innerHTML=field('salon','Nazwa salonu',c.salon)+field('address','Adres',c.address)+field('phone','Telefon',c.phone)+field('quarterLimit','Własny limit kwartalny (zł; opcjonalnie)',c.quarterLimit===''?'':c.quarterLimit/100,'number','step="0.01" min="0"')+
+  $('settingsFields').innerHTML=field('salon','Nazwa salonu',c.salon)+field('address','Adres',c.address)+field('phone','Telefon',c.phone)+field('quarterLimit','Własny limit kwartalny (zł; opcjonalnie)',pzOptionalLimit(c.quarterLimit)===null?'':c.quarterLimit/100,'number','step="0.01" min="0"')+
     '<h3 style="grid-column:1/-1">Cennik</h3>'+c.services.map(s=>field('price_'+s.id,s.name,s.price/100,'number','step="0.01" min="0.01" required')).join('');
   $('settingsForm').querySelectorAll('input,button').forEach(e=>e.disabled=!boot.manage);
 }

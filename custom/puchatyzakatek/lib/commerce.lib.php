@@ -170,7 +170,7 @@ function pz_business_settings($input) {
 function pz_limits_save($input) {
     if(!pz_can_manage())throw new InvalidArgumentException('Brak uprawnień.');$year=(int)($input['year']??0);if($year<2020||$year>2100)throw new InvalidArgumentException('Nieprawidłowy rok.');
     $months=$input['months']??array();if(count($months)!==12)throw new InvalidArgumentException('Podaj 12 limitów miesięcznych.');
-    $cfg=pz_config();$cfg['limits'][(string)$year]=array_map('pz_cents',$months);pz_put('config','main',$cfg);return array('ok'=>true);
+    $cfg=pz_config();$cfg['limits'][(string)$year]=array_map(function($value){if($value===null||trim((string)$value)==='')return null;$amount=pz_cents($value);return $amount>0?$amount:null;},$months);pz_put('config','main',$cfg);return array('ok'=>true);
 }
 function pz_expense_change($input,$remove=false) {
     $id=(int)($input['id']??0);$found=pz_rows('SELECT e.* FROM '.MAIN_DB_PREFIX.'pz_expense e JOIN '.MAIN_DB_PREFIX."pz_store m ON m.kind='expense' AND m.object_key=CAST(e.rowid AS CHAR) AND m.entity=".pz_entity().' WHERE e.rowid='.$id.' FOR UPDATE');

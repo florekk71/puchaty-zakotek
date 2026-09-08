@@ -107,7 +107,7 @@ try {
         if (!pz_can_manage()) throw new InvalidArgumentException('Brak uprawnień do ustawień salonu.');
         $cfg=pz_config(); foreach(array('salon','address','phone') as $k) $cfg[$k]=pz_text($data,$k,255,$k==='salon');
         $cfg['quarterLimit']=trim((string)($data['quarterLimit']??''));
-        if ($cfg['quarterLimit']!=='') $cfg['quarterLimit']=pz_cents($cfg['quarterLimit']);
+        if ($cfg['quarterLimit']!=='') {$cfg['quarterLimit']=pz_cents($cfg['quarterLimit']);if($cfg['quarterLimit']===0)$cfg['quarterLimit']='';}
         $prices=$data['prices']??array();
         foreach($cfg['services'] as &$s) { $s['price']=pz_cents($prices[$s['id']]??'');if($s['price']<=0)throw new InvalidArgumentException('Ceny muszą być dodatnie.'); } unset($s);
         pz_put('config','main',$cfg);$result=array('ok'=>true);break;
