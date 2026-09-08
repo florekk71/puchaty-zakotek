@@ -16,3 +16,11 @@
 /* Keep each day count readable, including narrow desktop columns. */
 .day-heading{flex-wrap:wrap;align-content:space-between;min-height:114px}.day-count{flex-basis:100%;line-height:1.5;min-height:14px}.day-count:empty{visibility:hidden}
 @media(max-width:760px){.day-heading{min-height:0}.day-count{flex-basis:auto}}
+
+/* Rest-day cards fill the same calendar height as appointment columns. */
+@media(min-width:761px){
+ .day{display:flex;flex-direction:column}
+ .day-heading{height:126px;min-height:126px;flex-shrink:0}
+ .day>.slot{flex-shrink:0}
+ .day>.closed-day{flex:1;margin-bottom:10px}
+}
