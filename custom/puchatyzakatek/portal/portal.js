@@ -67,7 +67,7 @@
     renderedFrom = from;
     const total = response.days.reduce((sum, day) => sum + (day.closed ? 0 : day.slots.filter(s => s.available).length), 0);
     const plural = new Intl.PluralRules('pl').select(total);
-    $('availabilityCount').textContent = total ? `${total} ${plural === 'one' ? 'wolny termin' : plural === 'few' ? 'wolne terminy' : 'wolnych terminów'}` : 'Brak wolnych terminów w tym tygodniu';
+    $('availabilityCount').textContent = total ? `${total} ${plural === 'one' ? 'wolny termin' : plural === 'few' ? 'wolne terminy' : 'wolnych terminów'} łącznie` : 'Brak wolnych terminów w tym tygodniu';
     $('rangeTitle').textContent = format(from, { day: 'numeric', month: 'short' }) + ' — ' + format(addDays(from, 6), { day: 'numeric', month: 'short', year: 'numeric' });
     $('calendar').replaceChildren(); $('mobileDays').replaceChildren();
     if (!response.days.some(d => d.date === activeDay)) activeDay = response.days.find(d => !d.closed && d.slots.some(s => s.available))?.date || response.days[0]?.date;
@@ -80,7 +80,7 @@
       const card = node('article', undefined, 'day'); card.dataset.day = day.date; card.setAttribute('aria-label', dateLabel(day.date));
       const heading = node('div', undefined, 'day-heading'), left = node('div');
       left.append(node('span', format(day.date, { weekday: 'short' }), 'weekday'), node('span', format(day.date, { day: 'numeric' }), 'day-number' + (day.date === status.today ? ' today-mark' : '')), node('span', format(day.date, { month: 'short' }), 'day-month'));
-      heading.append(left, node('span', free ? `${free} wolne` : !day.closed && day.full ? 'Komplet' : '', 'day-count')); card.append(heading);
+      heading.append(left, node('span', free ? `${free} ${free === 1 ? 'wolny termin' : 'wolne terminy'}` : !day.closed && day.full ? 'Komplet' : '', 'day-count')); card.append(heading);
       if (day.closed || !day.slots.length) { const closed = node('div', undefined, 'closed-day'); closed.append(node('span', '—'), node('span', day.closed ? 'Dzień odpoczynku' : 'Brak terminów')); card.append(closed); }
       // Closed days take precedence over older bookings in the public calendar.
       if (day.closed) { $('calendar').append(card); continue; }
