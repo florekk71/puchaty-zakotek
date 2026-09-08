@@ -37,7 +37,14 @@ Copy-Item -LiteralPath $compose -Destination (Join-Path $backup 'compose.origina
 $existed=Test-Path -LiteralPath $target
 if($existed){Copy-Item -LiteralPath $target -Destination (Join-Path $backup 'login.mount.original')}
 $changed=$false
+$logoSource=Join-Path (Split-Path $PSScriptRoot) 'custom/puchatyzakatek/img/logo-transparent.png'
+$logoTarget=Join-Path $root 'custom/puchatyzakatek/img/logo-transparent.png'
+if(!(Test-Path -LiteralPath $logoSource)){throw 'Brak logo-transparent.png. Pobierz pelna aktualizacje projektu.'}
 try {
+ if([IO.Path]::GetFullPath($logoSource) -ne [IO.Path]::GetFullPath($logoTarget)){
+  if(Test-Path -LiteralPath $logoTarget){Copy-Item -LiteralPath $logoTarget -Destination (Join-Path $backup 'logo-transparent.previous.png')}
+  Copy-Item -LiteralPath $logoSource -Destination $logoTarget -Force
+ }
  Run-Docker -DockerArgs @('compose','-f',$compose,'up','-d','dolibarr')|Write-Host
  Run-Docker -DockerArgs @('cp',($Container+':/var/www/html/core/tpl/login.tpl.php'),(Join-Path $backup 'login.tpl.php'))|Out-Null
  Run-Docker -DockerArgs @('cp',(Join-Path $PSScriptRoot 'patch-login.php'),($Container+':'+$remote+'.php'))|Out-Null
