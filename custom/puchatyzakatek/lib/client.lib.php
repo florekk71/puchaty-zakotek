@@ -2,10 +2,11 @@
 function pz_save_client($input) {
     global $db, $user;
     $id = (int) ($input['id'] ?? 0);
+    if(empty($input['clientKind'])) throw new InvalidArgumentException('Wybierz rodzaj klienta.');
     if(isset($input['clientKind'])){if(!in_array($input['clientKind'],array('person','company'),true))throw new InvalidArgumentException('Nieprawidłowy rodzaj klienta.');if($input['clientKind']==='person')$input['nip']='';}
     $name = pz_text($input, 'name', 128, true);
-    $phone = pz_text($input, 'phone', 20);
-    $email = pz_text($input, 'email', 128);
+    $phone = pz_text($input, 'phone', 20, true);
+    $email = pz_text($input, 'email', 128, true);
     $town = pz_text($input, 'town', 128);
     if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) throw new InvalidArgumentException('Nieprawidłowy adres e-mail.');
     if ($id) pz_client($id);
