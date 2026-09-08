@@ -65,23 +65,25 @@
     if (!from || from < status.today || from > $('from').max) { $('from').value = renderedFrom || status.today; throw new Error('Wybierz dzień w dostępnym okresie rezerwacji.'); }
     let response; try { response = await api('calendar', undefined, '&from=' + encodeURIComponent(from)); } catch (e) { $('from').value = renderedFrom || status.today; throw e; }
     renderedFrom = from;
-    const total = response.days.reduce((sum, day) => sum + day.slots.filter(s => s.available).length, 0);
+    const total = response.days.reduce((sum, day) => sum + (day.closed ? 0 : day.slots.filter(s => s.available).length), 0);
     const plural = new Intl.PluralRules('pl').select(total);
     $('availabilityCount').textContent = total ? `${total} ${plural === 'one' ? 'wolny termin' : plural === 'few' ? 'wolne terminy' : 'wolnych terminów'}` : 'Brak wolnych terminów w tym tygodniu';
     $('rangeTitle').textContent = format(from, { day: 'numeric', month: 'short' }) + ' — ' + format(addDays(from, 6), { day: 'numeric', month: 'short', year: 'numeric' });
     $('calendar').replaceChildren(); $('mobileDays').replaceChildren();
-    if (!response.days.some(d => d.date === activeDay)) activeDay = response.days.find(d => d.slots.some(s => s.available))?.date || response.days[0]?.date;
+    if (!response.days.some(d => d.date === activeDay)) activeDay = response.days.find(d => !d.closed && d.slots.some(s => s.available))?.date || response.days[0]?.date;
     for (const day of response.days) {
-      const free = day.slots.filter(s => s.available).length;
+      const free = day.closed ? 0 : day.slots.filter(s => s.available).length;
       const tab = node('button', undefined, 'mobile-day' + (free ? ' has-free' : '')); tab.dataset.day = day.date;
-      tab.setAttribute('aria-label', `${dateLabel(day.date)}: ${free} wolnych terminów`);
+      tab.setAttribute('aria-label', `${dateLabel(day.date)}: ${day.closed ? 'Dzień odpoczynku' : free + ' wolnych terminów'}`);
       tab.append(node('span', format(day.date, { weekday: 'short' })), node('strong', format(day.date, { day: 'numeric' })));
       tab.addEventListener('click', () => selectDay(day.date)); $('mobileDays').append(tab);
       const card = node('article', undefined, 'day'); card.dataset.day = day.date; card.setAttribute('aria-label', dateLabel(day.date));
       const heading = node('div', undefined, 'day-heading'), left = node('div');
       left.append(node('span', format(day.date, { weekday: 'short' }), 'weekday'), node('span', format(day.date, { day: 'numeric' }), 'day-number' + (day.date === status.today ? ' today-mark' : '')), node('span', format(day.date, { month: 'short' }), 'day-month'));
-      heading.append(left, node('span', free ? `${free} wolne` : day.full ? 'Komplet' : '', 'day-count')); card.append(heading);
+      heading.append(left, node('span', free ? `${free} wolne` : !day.closed && day.full ? 'Komplet' : '', 'day-count')); card.append(heading);
       if (day.closed || !day.slots.length) { const closed = node('div', undefined, 'closed-day'); closed.append(node('span', '—'), node('span', day.closed ? 'Dzień odpoczynku' : 'Brak terminów')); card.append(closed); }
+      // Closed days take precedence over older bookings in the public calendar.
+      if (day.closed) { $('calendar').append(card); continue; }
       for (const slot of day.slots) {
         const occupied = day.busy.some(b => overlaps(slot, b));
         const label = slot.available ? 'Rezerwuj wizytę' : occupied ? 'Zajęte' : day.full ? 'Limit dnia' : 'Niedostępne';
