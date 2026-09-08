@@ -195,6 +195,51 @@ $pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>
 
 [hidden]{display:none!important}.error{color:#a32a3d}.notice{margin-bottom:14px}.table-scroll{overflow:auto}dialog{border:1px solid var(--line);border-radius:22px;padding:24px;width:min(760px,94vw);max-height:90vh;overflow:auto;box-shadow:var(--shadow)}dialog::backdrop{background:#30202b70}button:disabled{opacity:.5;cursor:wait}.payment-check{display:block;margin-top:14px}.kpis{margin-top:18px}@media print{@page{size:80mm auto;margin:0}#receipt{box-sizing:border-box;width:80mm;overflow-wrap:anywhere}#receipt p{font-size:11px}#receipt h3{font-size:13px}}
 .calendar-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin:18px 0}.calendar-board{display:grid;grid-template-columns:repeat(7,minmax(145px,1fr));gap:10px;overflow-x:auto}.calendar-day{background:var(--rose2,#fff5f5);border-radius:14px;padding:12px;min-height:160px}.calendar-day h4{margin:0 0 12px}.calendar-event{background:white;padding:10px;border-radius:10px;margin:8px 0;border:1px solid #ecd8dc;overflow-wrap:anywhere}.calendar-event p{white-space:pre-wrap}.calendar-board.single{grid-template-columns:1fr}@media(max-width:900px){.topbar{height:auto;min-height:72px;flex-wrap:wrap;gap:8px;padding:12px}.top-actions{flex-wrap:wrap}}
+/* PZ_MOBILE_V1: screen-only rules preserve the 80 mm print layout. */
+@media screen and (max-width:780px){
+  .app,.main,.content,.view,.card,.grid>*{min-width:0;max-width:100%}
+  .sidebar{padding:12px;border-bottom:1px solid var(--line)}
+  .brand{display:grid;grid-template-columns:48px 1fr;align-items:center;gap:0 12px;text-align:left;margin-bottom:12px}
+  .brand .logo-mark{width:48px;height:48px;margin:0;grid-row:1/3}
+  .brand h1{font-size:19px;margin:0}.brand small{font-size:10px}
+  .sidebar .nav{display:flex;flex-direction:row;gap:8px;overflow-x:auto;padding:4px 0 8px;max-width:100%;overscroll-behavior-x:contain}
+  .sidebar .nav button{flex:0 0 auto;display:flex;align-items:center;gap:6px;font-size:13px;min-height:44px;padding:10px 12px;white-space:nowrap}
+  .sidebar .nav .ico{font-size:18px}
+  .content{padding:12px}.content .view{padding:0!important}
+  .topbar{padding:12px;align-items:flex-start}.topbar h2{font-size:20px}
+  .top-actions{width:100%;gap:6px;align-items:center}.top-actions .pill{white-space:normal;overflow-wrap:anywhere;font-size:12px}
+  .grid{gap:12px}.grid-2,.grid-3{grid-template-columns:minmax(0,1fr)}
+  .card{padding:14px;border-radius:18px}.section-title,.backline{gap:10px;flex-wrap:wrap}
+  .section-title h3{overflow-wrap:anywhere}.section-title>input{flex:1 1 180px}
+  .btn,.pay,.addon,.service,.step-pill,summary{min-height:44px;touch-action:manipulation}
+  .btn{white-space:normal;overflow-wrap:anywhere}.input,.select,.textarea{font-size:16px;min-height:44px;min-width:0;max-width:100%}
+  input[type=date],input[type=datetime-local]{box-sizing:border-box;min-width:0;width:100%;max-width:100%}
+  .field,.formgrid>*{min-width:0}.field label{font-size:13px}
+  .paygrid{grid-template-columns:repeat(2,minmax(0,1fr))}.finish{grid-template-columns:minmax(0,1fr)}
+  .payment-check{display:flex;gap:10px;align-items:center;min-height:48px}.payment-check input{width:22px;height:22px;flex-shrink:0}
+  .pos-stepper{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.step-pill{justify-content:center;padding:10px 6px;font-size:12px}
+  .selection-chip{max-width:100%;overflow-wrap:anywhere}.notice{overflow-wrap:anywhere;line-height:1.5}
+  .calendar-board{grid-template-columns:minmax(0,1fr);overflow:visible}.calendar-day{min-height:0}.calendar-event .btn{margin:3px 3px 3px 0}
+  .calendar-toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:end}.calendar-toolbar>*{min-width:0}
+  .table-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}.table-scroll .table{min-width:580px}
+  .cart{table-layout:fixed}.cart th,.cart td{overflow-wrap:anywhere}.cart input{max-width:100%;min-width:0}
+  .kpi{padding:12px}.kpi strong{font-size:22px;overflow-wrap:anywhere}
+  dialog{box-sizing:border-box;width:calc(100vw - 16px);max-width:calc(100vw - 16px);max-height:calc(100dvh - 24px);padding:18px 14px;border-radius:18px;overscroll-behavior:contain}
+  dialog .section-title{margin-top:18px;margin-bottom:0}dialog .section-title .btn{flex:1}
+  :focus-visible{outline:2px solid #913b5b;outline-offset:3px}
+}
+@media screen and (max-width:600px){
+  .formgrid,.dog-grid,.client-results{grid-template-columns:minmax(0,1fr)}
+  .formgrid>*{grid-column:1/-1!important}
+  .services,.addons{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .service{padding:12px;min-height:110px}.service b,.addon{overflow-wrap:anywhere}
+  .service:hover,.client-card:hover,.dog-card:hover{transform:none}
+  .pz-dashboard .pz-kpis,.pz-dashboard .pz-charts{grid-template-columns:minmax(0,1fr)}
+}
+@media screen and (max-width:360px){.services,.addons{grid-template-columns:minmax(0,1fr)}.brand small{display:none}}
+@media(prefers-reduced-motion:reduce){.service,.client-card,.dog-card{transition:none}}
+
+
 </style>
 </head>
 <body>
