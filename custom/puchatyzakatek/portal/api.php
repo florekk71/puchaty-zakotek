@@ -15,9 +15,10 @@ try{
         }
         if($op==='logout'){$_SESSION=array();session_regenerate_id(true);pz_portal_reply(array('ok'=>true));}
     }
-    if(!$account)pz_portal_reply(array('error'=>'Zaloguj się, aby zobaczyć terminarz.'),401);
-    if(!$post&&$op==='data')pz_portal_reply(pz_portal_data($account));
+    // Public calendar exposes only the explicit anonymous projection, never customer records.
     if(!$post&&$op==='calendar')pz_portal_reply(array('days'=>pz_booking_calendar((string)($_GET['from']??''),$portalConfig)));
+    if(!$account)pz_portal_reply(array('error'=>'Zaloguj się, aby zarezerwować wizytę lub zobaczyć swoje dane.'),401);
+    if(!$post&&$op==='data')pz_portal_reply(pz_portal_data($account));
     if(!$post)throw new InvalidArgumentException('Nieznana operacja.');
     $result=pz_portal_tx(function()use($op,$data,$portalConfig){
         // Re-read ownership under the transaction lock, including disabled accounts.

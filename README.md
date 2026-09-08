@@ -154,7 +154,7 @@ Następnie możesz wykonać `mail-worker.php test` do skonfigurowanego `test_rec
 
 ### Strefa klienta: Google, e-mail i anonimowy terminarz
 
-Dodano `/custom/puchatyzakatek/portal/`: osobne konta klientów z logowaniem Google lub jednorazowym kodem e-mail (pierwsze potwierdzenie zakłada konto), własne psy i wizyty, rezerwację i odwołanie. Zajęte terminy innych klientów pokazują tylko godziny. Zachowano przezroczyste logo i pastelowy wygląd, również na telefonach.
+Dodano `/custom/puchatyzakatek/portal/`: osobne konta klientów z logowaniem Google lub jednorazowym kodem e-mail (pierwsze potwierdzenie zakłada konto), własne psy i wizyty, rezerwację i odwołanie. Kalendarz dostępności jest publiczny, bez logowania; zajęte terminy innych klientów pokazują tylko godziny. Rezerwacja i własne dane wymagają logowania. Wybór terminu jest zachowywany podczas logowania. Zachowano przezroczyste logo i pastelowy wygląd, również na telefonach.
 
 Wspólne zasady portalu i terminarza pracowników: 3 godziny na psa, maksymalnie 3 psy dziennie, minimum godzina wyprzedzenia; zapis z kontrolą nakładania wizyt w transakcji. Rozliczenie już zaplanowanej wizyty nie zwiększa liczby rezerwacji. Domyślnie portal jest wyłączony, a puste godziny we wzorze nie blokują pracowników.
 

@@ -1,6 +1,14 @@
 # Strefa klienta — konfiguracja Windows / Linux
 
-Portal znajduje się pod `/custom/puchatyzakatek/portal/`. Ma własne konta i ciasteczko sesji, oddzielone od kont pracowników Dolibarra. Podgląd kalendarza wymaga logowania. Inni klienci widzą wyłącznie godziny zajętości, bez nazwisk, psów, notatek i identyfikatorów wizyt. Własne wizyty i psy są dostępne w „Moich wizytach”.
+Portal znajduje się pod `/custom/puchatyzakatek/portal/`. Ma własne konta i ciasteczko sesji, oddzielone od kont pracowników Dolibarra. Podgląd anonimowej dostępności jest publiczny. Logowanie jest wymagane dopiero do rezerwacji i własnych danych. Odwiedzający widzą wyłącznie godziny zajętości, bez nazwisk, psów, notatek i identyfikatorów wizyt. Własne wizyty i psy są dostępne w „Moich wizytach”.
+
+### Publiczny terminarz — nowy wygląd
+
+Duży widok 7 dni jest dostępny od razu, a na telefonie przełącza się dni za pomocą przycisków nad kalendarzem. Wolne godziny są miętowe, zajęte różowe, niedostępne szare. Kliknięcie wolnego terminu przez gościa otwiera okno logowania Google/e-mail i zachowuje datę na czas logowania; nie blokuje jeszcze miejsca. Rezerwację potwierdza zalogowany klient po wybraniu psa. Serwer ponownie sprawdza dostępność przy zapisie.
+
+Interfejs korzysta z CSS Grid, responsywnych stylów, natywnego okna dialogowego i JavaScript — bez zewnętrznych CDN, fontów ani dodatkowych zależności do instalowania. Obsługuje klawiaturę i ograniczenie animacji. Publiczny endpoint `GET portal/api.php?op=calendar&from=RRRR-MM-DD` zwraca wyłącznie anonimową projekcję. `data` i operacje zapisu nadal wymagają konta. Test granicy dostępu: `php tests/portal-public-api.php` (izolowane zależności); reguły i SQL: `php tests/portal.php`.
+
+Po `git pull --ff-only` odśwież portal; pliki CSS/JS mają nową wersję w adresie. Wzór `deploy/nginx-https.conf` kieruje teraz `/` na `/custom/puchatyzakatek/portal/`. Sam `git pull` nie zmienia konfiguracji nginx zainstalowanej na hoście: przenieś tę zmianę do aktywnej konfiguracji domeny, następnie wykonaj `sudo nginx -t` i dopiero po poprawnej walidacji `sudo systemctl reload nginx`. Panel pracowników pozostaje pod `/custom/puchatyzakatek/index.php`. Sekrety i konfiguracja godzin nie wymagają zmian.
 
 ## Pliki do samodzielnego uzupełnienia
 
