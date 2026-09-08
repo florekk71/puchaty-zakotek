@@ -133,3 +133,9 @@ Usługa cron i Docker muszą działać; użytkownik nie musi być zalogowany. Dl
 Wiadomości używają wspólnego szablonu HTML w `custom/puchatyzakatek/lib/mail-template.lib.php`: pastelowa mięta, róż i lila, przezroczyste logo PNG, czytelne szczegóły oraz dane kontaktowe z `[salon]` i `[sender]`. Szablon obejmuje rezerwację, zmianę terminu, odwołanie, przypomnienie, fakturę PDF i test SMTP. Logo jest zamieniane przez Dolibarra na osadzony załącznik CID, bez odwołań do localhost i bez zewnętrznego hostingu grafiki. Transport generuje także tekstową część wiadomości z HTML. Klient pocztowy może ukrywać obrazki; nazwa salonu i szczegóły pozostają tekstem.
 
 Po aktualizacji wykonaj polecenie `mail-worker.php test`, aby sprawdzić wygląd w swojej skrzynce. Testy lokalne obejmują HTML przy szerokościach 320, 390 i 800 px; rendering Outlooka, Gmaila i innych klientów należy potwierdzić wiadomością testową.
+
+### Powiadomienia właściciela salonu
+
+W **Ustawienia → E-mail właściciela salonu** (także **NDG i raporty → Poczta i kolejka**) wpisz adres właściciela i włącz wybrane zdarzenia: nową rezerwację, zmianę terminu i odwołanie. Ustawienia są przechowywane w bazie danej jednostki; może je zmieniać osoba z prawem pełnej obsługi modułu.
+
+Wymagają aktywnego SMTP (`delivery.enabled = true`) i harmonogramu wysyłki. Nie wymagają włączonych wiadomości do klientów ani adresu e-mail klienta. Są to oddzielne wiadomości, bez CC/BCC, z własnym wpisem w kolejce i deduplikacją. Zawierają klienta, psa i termin oraz szablon przeznaczony dla salonu. Zmiana adresu właściciela powoduje pominięcie oczekujących wiadomości zaadresowanych do poprzedniego właściciela. Ustawienia dotyczą nowych zdarzeń; nie tworzą zbiorczej wysyłki historycznych wizyt.

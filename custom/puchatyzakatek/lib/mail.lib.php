@@ -9,6 +9,15 @@ function pz_mail_config() {
     return $c;
 }
 function pz_mail_enabled($c,$event){return !empty($c['delivery']['enabled'])&&!empty($c['messages'][$event]);}
+function pz_mail_owner(){return pz_config()['mailOwner']??array('address'=>'','enabled'=>false,'events'=>array());}
+function pz_mail_owner_enabled($c,$event){$o=pz_mail_owner();return !empty($c['delivery']['enabled'])&&!empty($o['enabled'])&&!empty($o['events'][$event])&&filter_var($o['address']??'',FILTER_VALIDATE_EMAIL);}
+function pz_mail_owner_save($input){
+    if(!pz_can_manage())throw new InvalidArgumentException('Brak uprawnień do ustawień poczty.');
+    $address=trim((string)($input['address']??''));$enabled=($input['enabled']??'0')==='1';
+    if(($enabled||$address!=='')&&!filter_var($address,FILTER_VALIDATE_EMAIL))throw new InvalidArgumentException('Wpisz poprawny adres e-mail właściciela salonu.');
+    $events=array();foreach(array('booking_confirmation','appointment_changed','appointment_cancelled') as $e)$events[$e]=($input[$e]??'0')==='1';
+    $cfg=pz_config();$cfg['mailOwner']=array('address'=>$address,'enabled'=>$enabled,'events'=>$events);pz_put('config','main',$cfg);return array('ok'=>true);
+}
 function pz_mail_validate($c) {
     $s=$c['smtp']??array();$from=$c['sender']??array();
     if(empty($s['host'])||preg_match('/[\s\/\\\\]/',(string)$s['host'])||!in_array($s['encryption']??'',array('tls','starttls'),true))throw new RuntimeException('Uzupelnij host SMTP i szyfrowanie tls/starttls.');
@@ -18,10 +27,17 @@ function pz_mail_validate($c) {
     if(preg_match('/[\r\n<>]/',(string)($from['name']??'')))throw new RuntimeException('Nieprawidlowa nazwa nadawcy.');
 }
 function pz_mail_enqueue($event,$id,$stamp='',$revision='') {
-    try{$c=pz_mail_config();}catch(Throwable $e){dol_syslog('PZ mail: invalid configuration, notification not queued',LOG_ERR);return;}if(!pz_mail_enabled($c,$event))return;
-    $key=hash('sha256',$event.'|'.$id.'|'.$stamp.'|'.$revision);
-    if(pz_store('mail',$key)!==null)return;
-    pz_put('mail',$key,array('id'=>$key,'event'=>$event,'objectId'=>(string)$id,'stamp'=>$stamp,'state'=>'queued','createdAt'=>date('c'),'attempts'=>0));
+    try{$c=pz_mail_config();}catch(Throwable $e){dol_syslog('PZ mail: invalid configuration, notification not queued',LOG_ERR);return;}
+    foreach(array('client','owner') as $audience){
+        if($audience==='owner'?!pz_mail_owner_enabled($c,$event):!pz_mail_enabled($c,$event))continue;
+        $base=$event.'|'.$id.'|'.$stamp.'|'.$revision;
+        // Keep existing customer keys stable during upgrades.
+        $key=hash('sha256',$base.($audience==='owner'?'|owner':''));
+        if(pz_store('mail',$key)!==null)continue;
+        $m=array('id'=>$key,'event'=>$event,'audience'=>$audience,'objectId'=>(string)$id,'stamp'=>$stamp,'state'=>'queued','createdAt'=>date('c'),'attempts'=>0);
+        if($audience==='owner')$m['ownerAddress']=pz_mail_owner()['address'];
+        pz_put('mail',$key,$m);
+    }
 }
 function pz_mail_capture($action,$input,$result) {
     if($action==='plan')pz_mail_enqueue('booking_confirmation',$result['id'],str_replace('T',' ',(string)($input['date']??'')));
@@ -45,7 +61,7 @@ function pz_mail_records(){return array_map(function($r){return json_decode($r['
 function pz_mail_status(){
     if(!pz_can_manage())throw new InvalidArgumentException('Brak uprawnien do poczty.');
     try{$c=pz_mail_config();$enabled=!empty($c['delivery']['enabled']);$error='';}catch(Throwable $e){$enabled=false;$error='Blad pliku konfiguracji poczty.';}
-    return array('enabled'=>$enabled,'error'=>$error,'messages'=>array_slice(pz_mail_records(),0,100));
+    return array('enabled'=>$enabled,'error'=>$error,'owner'=>pz_mail_owner(),'messages'=>array_slice(pz_mail_records(),0,100));
 }
 function pz_mail_retry($id){
     if(!pz_can_manage())throw new InvalidArgumentException('Brak uprawnien do poczty.');
@@ -67,6 +83,8 @@ function pz_mail_reminders($c,$now=null){
 }
 function pz_mail_prepare($m,$c){
     $file=null;$body='';$details=array();$event=$m['event'];
+    $owner=($m['audience']??'client')==='owner';
+    if($owner&&(!pz_mail_owner_enabled($c,$event)||($m['ownerAddress']??'')!==(pz_mail_owner()['address']??'')))return null;
     if($event==='invoice_after_payment'){
         $d=pz_store('document',$m['objectId']);if(!$d||$d['state']!=='issued'||empty($d['received']))return null;
         $to=$d['buyer']['email']??'';
@@ -80,14 +98,15 @@ function pz_mail_prepare($m,$c){
         if($event!=='appointment_cancelled'&&$v['status']!=='planned')return null;
         if($m['stamp']!==''&&substr($m['stamp'],0,16)!==substr($v['visit_date'],0,16))return null;
         if($event!=='appointment_cancelled'&&(new DateTimeImmutable($v['visit_date'],new DateTimeZone('Europe/Warsaw')))->getTimestamp()<=time())return null;
-        $to=$v['email'];if(!filter_var($to,FILTER_VALIDATE_EMAIL))return array('skip'=>'Brak poprawnego adresu e-mail klienta.');
+        $to=$owner?$m['ownerAddress']:$v['email'];if(!filter_var($to,FILTER_VALIDATE_EMAIL))return array('skip'=>'Brak poprawnego adresu e-mail klienta.');
         $titles=array('booking_confirmation'=>'Potwierdzenie rezerwacji','appointment_changed'=>'Zmiana terminu wizyty','appointment_cancelled'=>'Odwołanie wizyty','appointment_reminder'=>'Przypomnienie o wizycie');
         $details=array('Pupil'=>$v['dog'],'Termin'=>(new DateTimeImmutable($v['visit_date']))->format('d.m.Y H:i').' (czas polski)');
-        $subject=($titles[$event]??'Wizyta').' - Puchaty Zakątek';
+        $subject=($owner?'Salon: ':'').($titles[$event]??'Wizyta').' - Puchaty Zakątek';
+        if($owner)$details=array('Klient'=>$v['client'])+$details;
         $body="Dzień dobry,\n\n".$titles[$event]."\nPies: ".$v['dog']."\nTermin: ".(new DateTimeImmutable($v['visit_date']))->format('d.m.Y H:i')." (czas polski).";
     }
     $body.="\n\n".($c['salon']['address']??'')."\nTelefon: ".($c['salon']['phone']??'')."\n".($c['salon']['footer']??'Puchaty Zakątek');
-    return array('to'=>$to,'subject'=>$subject,'body'=>$body,'html'=>pz_mail_template($event,$details,$c),'file'=>$file);
+    return array('to'=>$to,'subject'=>$subject,'body'=>$body,'html'=>pz_mail_template($owner?'owner_'.$event:$event,$details,$c),'file'=>$file);
 }
 function pz_mail_send($c,$payload){
     global $conf;
@@ -122,7 +141,7 @@ function pz_mail_run(){
         foreach(array_reverse(pz_mail_records()) as $m){
             if($m['state']==='sending'){$m['state']='unknown';$m['error']='Poprzednia proba zostala przerwana. Sprawdz odbior przed ponowieniem.';pz_put('mail',$m['id'],$m);continue;}
             if($m['state']!=='queued')continue;
-            if(!pz_mail_enabled($c,$m['event'])){$m['state']='skipped';$m['error']='Ten rodzaj wiadomosci jest wylaczony.';pz_put('mail',$m['id'],$m);continue;}
+            if((($m['audience']??'client')==='owner')?!pz_mail_owner_enabled($c,$m['event']):!pz_mail_enabled($c,$m['event'])){$m['state']='skipped';$m['error']='Ten rodzaj wiadomosci jest wylaczony.';pz_put('mail',$m['id'],$m);continue;}
             try{
                 $p=pz_mail_prepare($m,$c);
                 if(!$p||isset($p['skip'])){$m['state']='skipped';$m['error']=$p['skip']??'Wiadomosc nieaktualna.';pz_put('mail',$m['id'],$m);continue;}

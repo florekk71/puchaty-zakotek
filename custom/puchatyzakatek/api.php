@@ -49,6 +49,7 @@ try {
     if ($db->begin()<=0) throw new RuntimeException('Nie udało się rozpocząć transakcji.');
     pz_commerce_lock();
     switch ($action) {
+    case 'mailownersettings': $result=pz_mail_owner_save($data);break;
     case 'mailretry': $result=pz_mail_retry((string)($data['id']??''));break;
     case 'catalog': $result=pz_catalog_save($data);break;
     case 'unit': $result=pz_unit_save($data);break;
