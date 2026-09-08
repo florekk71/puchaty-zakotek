@@ -2,6 +2,7 @@
 <!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Puchaty Zakątek — Strefa klienta</title><link rel="icon" href="../img/logo-transparent.png"><link rel="stylesheet" href="portal.css"></head><body>
 <header><img src="../img/logo-transparent.png" alt="Logo Puchaty Zakątek"><div><p class="eyebrow">STREFA KLIENTA</p><h1>Puchaty Zakątek</h1><p>Czas na pielęgnację Twojego pupila</p></div></header>
 <main>
+<p>Salon czynny pon.–pt. 09:00–15:00. Rezerwacje online przyjmujemy całą dobę. <a href="privacy.html">Polityka prywatności</a></p>
 <p id="message" role="status" aria-live="polite"><?php echo htmlspecialchars((string)($_SESSION['pz_notice']??''),ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8'); unset($_SESSION['pz_notice']); ?></p>
 <section id="login" class="card" hidden><h2>Witaj w Puchatym Zakątku</h2><p>Zaloguj się, aby sprawdzić dostępność i umówić wizytę. Pierwsze logowanie utworzy Twoje konto.</p>
 <form id="google" method="post" action="google.php" hidden><input type="hidden" name="csrf"><button class="outline">Kontynuuj z Google</button></form>

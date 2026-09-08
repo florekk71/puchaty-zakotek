@@ -101,7 +101,10 @@ function pz_portal_profile($a,$data,$c){
     require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
     $actor=pz_portal_actor($c);$s=new Societe($db);$s->name=$name;$s->phone=$phone;$s->email=$a['email'];$s->entity=pz_entity();$s->client=1;$s->fournisseur=0;$s->code_client='-1';
     $id=$s->create($actor);if($id<=0)throw new RuntimeException('Nie udało się utworzyć kartoteki klienta.');
-    pz_query('INSERT INTO '.MAIN_DB_PREFIX.'societe_commerciaux (fk_soc,fk_user) VALUES ('.(int)$id.','.(int)$actor->id.')');
+    // Dolibarr may already assign the creator; avoid a duplicate-key failure.
+    pz_query('INSERT INTO '.MAIN_DB_PREFIX.'societe_commerciaux (fk_soc,fk_user,fk_c_type_contact_code)'
+        .' SELECT '.(int)$id.','.(int)$actor->id.", 'SALESREPTHIRD' WHERE NOT EXISTS (SELECT 1 FROM ".MAIN_DB_PREFIX.'societe_commerciaux'
+        .' WHERE fk_soc='.(int)$id.' AND fk_user='.(int)$actor->id." AND fk_c_type_contact_code='SALESREPTHIRD')");
     $a['clientId']=(int)$id;pz_put('portal_account',$a['id'],$a);pz_put('client_meta',(string)$id,array('clientKind'=>'person','source'=>'portal'));
     return array('ok'=>true);
 }

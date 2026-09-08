@@ -39,8 +39,9 @@ services:
     volumes:
       - ./data/documents:/var/www/documents
       - ./custom:/var/www/html/custom
+      - ./mail-config.ini:/run/secrets/pz-mail.ini:ro
       - type: bind
-        source: ${PZ_PORTAL_CONFIG_FILE:-./deploy/portal-config.example.ini}
+        source: ${PZ_PORTAL_CONFIG_FILE:-./portal-config.ini}
         target: /run/secrets/pz-portal.ini
         read_only: true
         bind:

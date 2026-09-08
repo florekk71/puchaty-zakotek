@@ -1,0 +1,13 @@
+[Unit]
+Description=Puchaty Zakatek mail queue worker
+Requires=docker.service
+After=docker.service network-online.target exim4.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/docker exec --user www-data puchaty-dolibarr php /var/www/html/custom/puchatyzakatek/scripts/mail-worker.php run
+TimeoutStartSec=15min
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=puchaty-mail
+
