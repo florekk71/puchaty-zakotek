@@ -32,9 +32,18 @@ body.bodylogin .alogin {color:#913b5b !important;}
 body.bodylogin input:focus-visible,body.bodylogin a:focus-visible {outline:2px solid #913b5b;outline-offset:3px;}
 @media(max-width:600px){body.bodylogin form#login{padding:28px 16px;}body.bodylogin .pz-login-heading{font-size:28px;margin-bottom:28px;}body.bodylogin #img_logo{width:180px !important;height:180px !important;}body.bodylogin .login_center{padding:16px 8px;}}
 </style>
-<h1 class="pz-login-heading">Puchaty Zak�tek</h1>
+<h1 class="pz-login-heading">Puchaty Zakątek</h1>
 HTML;
     $source=str_replace('<!-- PZ_LOGIN_BRAND_V1 -->','<!-- PZ_LOGIN_BRAND_V1 -->'."\n".$brand,$source);
+}
+if(!str_contains($source,'PZ_LOGIN_FAVICON_V1')){
+    $anchor="top_htmlhead('', \$titleofloginpage";
+    if(substr_count($source,$anchor)!==1)throw new RuntimeException('Unsupported login head structure');
+    $code=<<<'PHP'
+// PZ_LOGIN_FAVICON_V1
+$conf->global->MAIN_FAVICON_URL = DOL_URL_ROOT.'/custom/puchatyzakatek/img/logo.jpg?v=pz1';
+PHP;
+    $source=str_replace($anchor,$code."\n".$anchor,$source);
 }
 if(file_put_contents($targetPath,$source)===false)throw new RuntimeException('Cannot write branded login template');
 echo "PZ_LOGIN_BRAND_OK\n";

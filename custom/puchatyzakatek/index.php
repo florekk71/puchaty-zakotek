@@ -13,6 +13,7 @@ $pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Puchaty Zakątek</title>
+<link rel="icon" type="image/jpeg" href="<?php echo DOL_URL_ROOT; ?>/custom/puchatyzakatek/img/logo.jpg?v=pz1" />
 <style>
   :root{
     --bg:#fffaf7;
