@@ -161,3 +161,7 @@ Wspólne zasady portalu i terminarza pracowników: 3 godziny na psa, maksymalnie
 **Konfiguracja pozostaje w prywatnych plikach.** Skopiuj [wzór portal-config.ini](deploy/portal-config.example.ini), wpisz godziny, domenę, konfigurację logowania i włącz portal zgodnie z [instrukcją Windows / Linux](deploy/PORTAL.md). Google i kody e-mail wymagają konfiguracji oraz testu na docelowej instalacji; samo pobranie kodu ich nie uruchamia. Do GitHuba nie trafiają sekrety, konta klientów ani baza.
 
 Testy logiki i izolacji danych: `php tests/portal.php` (pdo_sqlite, mbstring), bez produkcyjnej bazy i wysyłania poczty.
+
+### Wygląd panelu salonu
+
+Panel pracowników używa kolorystyki i typografii portalu klienta: spokojna zieleń, kremowe tło, pastelowe statusy i wspólna stylistyka przycisków, formularzy, list oraz POS. Terminarz pokazuje daty i godziny w nowym układzie; na telefonie można przełączać dni tygodnia. Rozliczanie, edycja i odwoływanie nadal korzystają z dotychczasowych operacji i uprawnień. Filtry Od / Do znajdują się w rozwijanej historii wizyt. Nowy arkusz `css/admin-portal.css` jest ładowany tylko na ekranie, więc nie zmienia wydruku 80 mm. Po pobraniu aktualizacji odśwież panel Ctrl+F5.

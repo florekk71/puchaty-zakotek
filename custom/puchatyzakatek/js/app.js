@@ -248,7 +248,7 @@ document.addEventListener('click',async event=>{
     if(b.dataset.cancel){const id=Number(b.dataset.cancel);modal('Odwołaj wizytę','<p>Wizyta pozostanie w historii ze statusem „Anulowana”.</p>',async()=>{await api('cancel',{id});await refresh();message('Wizyta odwołana. Pozostaje w historii.');});}
     if(b.dataset.paid){const id=Number(b.dataset.paid);modal('Zarejestruj otrzymaną wpłatę',field('date','Data otrzymania',today(),'date','required'),async values=>{await api('paid',{id,...values});await refresh();message('Wpłata zarejestrowana.');});}
     const action=b.dataset.action;
-    if(action==='calendar-today'){$('calendarDate').value=today();renderCalendar();}
+    if(action==='calendar-today'){$('calendarDate').value=today();salonCalendarDay=today();renderCalendar();}
     if(action==='dog')dogForm();if(action==='plan')planForm();if(action==='expense')expenseForm();
     if(action==='client')clientForm();
     if(b.dataset.editClient)clientForm(Number(b.dataset.editClient));
@@ -279,13 +279,30 @@ function calendarIso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padSta
 function calendarStart(){const d=new Date(($('calendarDate').value||today())+'T12:00:00');if($('calendarMode').value==='week')d.setDate(d.getDate()-((d.getDay()+6)%7));return d;}
 function shiftCalendar(direction){const d=calendarStart();d.setDate(d.getDate()+direction*($('calendarMode').value==='week'?7:1));$('calendarDate').value=calendarIso(d);renderCalendar();}
 function editVisit(id){const v=data.visits.find(x=>Number(x.rowid)===id);if(!v||v.status!=='planned'||!canWrite())return;modal('Edytuj termin wizyty',reservationField(v.visit_date.slice(0,16).replace(' ','T'))+noteField('notes','Uwagi',v.notes),async values=>{await api('reschedule',{id,...values});await refresh();message('Termin wizyty zaktualizowany.');});}
-function renderCalendar(){
- const mode=$('calendarMode').value,board=$('calendarBoard');board.hidden=mode==='list';$('visitList').parentElement.open=mode==='list';if(mode==='list'){$('calendarRange').textContent='Lista według filtrów Od / Do';return;}
- const start=calendarStart(),days=mode==='week'?7:1,html=[];board.className='calendar-board'+(days===1?' single':'');
- for(let i=0;i<days;i++){const d=new Date(start);d.setDate(d.getDate()+i);const iso=calendarIso(d);const visits=data.visits.filter(v=>v.visit_date.slice(0,10)===iso&&v.status!=='cancelled').sort((a,b)=>a.visit_date.localeCompare(b.visit_date));html.push('<section class="calendar-day'+(visits.length?'':' calendar-day-empty')+'"><h4>'+esc(d.toLocaleDateString('pl-PL',{weekday:'short',day:'numeric',month:'numeric'}))+'</h4>'+(canWrite()?'<button class="btn ghost" data-plan-date="'+iso+'">+ Wizyta</button>':'')+visits.map(v=>'<article class="calendar-event '+visitStatusClass(v.status)+'"><strong>'+esc(v.visit_date.slice(11,16))+' · '+esc(v.dog)+'</strong><div>'+esc(v.client)+'</div><p>'+esc(v.notes||'')+'</p>'+visitStatusBadge(v.status)+(canWrite()&&v.status==='planned'?'<p><button class="btn ghost" data-edit-visit="'+Number(v.rowid)+'">Edytuj termin</button> <button class="btn soft" data-checkout="'+Number(v.rowid)+'">Rozlicz</button> <button class="btn ghost" data-cancel="'+Number(v.rowid)+'">Odwołaj wizytę</button></p>':'')+'</article>').join('')+(visits.length?'':'<p class="calendar-empty">Brak wizyt</p>')+'</section>');}
- board.innerHTML=html.join('');const end=new Date(start);end.setDate(end.getDate()+days-1);$('calendarRange').textContent=calendarIso(start)+' — '+calendarIso(end);
+let salonCalendarDay=null;
+function salonSelectDay(iso){
+ salonCalendarDay=iso;
+ document.querySelectorAll('#calendarBoard .calendar-day').forEach(n=>n.classList.toggle('salon-active-day',n.dataset.salonDay===iso));
+ document.querySelectorAll('[data-salon-select-day]').forEach(n=>n.setAttribute('aria-pressed',String(n.dataset.salonSelectDay===iso)));
 }
-['calendarMode','calendarDate'].forEach(id=>$(id).addEventListener('change',()=>data&&renderCalendar()));
+function renderCalendar(){
+ const mode=$('calendarMode').value,board=$('calendarBoard'),tabs=$('calendarMobileDays');board.hidden=mode==='list';tabs.hidden=mode!=='week';$('visitList').parentElement.open=mode==='list';if(mode==='list'){$('calendarRange').textContent='Lista według filtrów Od / Do';return;}
+ const start=calendarStart(),days=mode==='week'?7:1,html=[],tabHtml=[],dates=[];board.className='calendar-board'+(days===1?' single':'');
+ for(let i=0;i<days;i++){
+  const d=new Date(start);d.setDate(d.getDate()+i);const iso=calendarIso(d);dates.push(iso);
+  const visits=data.visits.filter(v=>v.visit_date.slice(0,10)===iso&&v.status!=='cancelled').sort((a,b)=>a.visit_date.localeCompare(b.visit_date));
+  const weekday=esc(d.toLocaleDateString('pl-PL',{weekday:'short'}));
+  tabHtml.push('<button type="button" class="salon-mobile-day" data-salon-select-day="'+iso+'" aria-label="'+esc(d.toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'}))+', wizyty: '+visits.length+'"><span>'+weekday+'</span><strong>'+d.getDate()+'</strong><small>'+visits.length+'</small></button>');
+  const events=visits.map(v=>'<article class="calendar-event '+visitStatusClass(v.status)+'"><div class="salon-event-top"><time class="salon-event-time">'+esc(v.visit_date.slice(11,16))+'</time>'+visitStatusBadge(v.status)+'</div><strong class="salon-event-dog">'+esc(v.dog)+'</strong><div class="salon-event-client">'+esc(v.client)+'</div>'+(v.notes?'<p class="salon-event-notes">'+esc(v.notes)+'</p>':'')+(canWrite()&&v.status==='planned'?'<div class="salon-event-actions"><button class="btn soft" data-checkout="'+Number(v.rowid)+'">Rozlicz ↗</button><button class="btn ghost" data-edit-visit="'+Number(v.rowid)+'">Edytuj termin</button><button class="btn ghost" data-cancel="'+Number(v.rowid)+'">Odwołaj wizytę</button></div>':'')+'</article>').join('');
+  html.push('<section data-salon-day="'+iso+'" class="calendar-day'+(visits.length?'':' calendar-day-empty')+'"><div class="salon-day-heading"><h4><span>'+weekday+'</span><b class="'+(iso===today()?'salon-today':'')+'">'+d.getDate()+'</b><small>'+esc(d.toLocaleDateString('pl-PL',{month:'short'}))+'</small></h4><span class="salon-day-count">Wizyty: '+visits.length+'</span></div>'+events+(visits.length?'':'<p class="calendar-empty"><span aria-hidden="true">—</span>Brak wizyt</p>')+(canWrite()?'<button class="btn ghost salon-add-visit" data-plan-date="'+iso+'">+ Dodaj wizytę</button>':'')+'</section>');
+ }
+ board.innerHTML=html.join('');tabs.innerHTML=tabHtml.join('');
+ if(!dates.includes(salonCalendarDay))salonCalendarDay=dates.includes($('calendarDate').value)?$('calendarDate').value:dates.includes(today())?today():dates[0];
+ salonSelectDay(salonCalendarDay);
+ const end=new Date(start);end.setDate(end.getDate()+days-1);$('calendarRange').textContent=start.toLocaleDateString('pl-PL',{day:'numeric',month:'long'})+' — '+end.toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'});
+}
+$('calendarMobileDays').addEventListener('click',e=>{const button=e.target.closest('[data-salon-select-day]');if(button)salonSelectDay(button.dataset.salonSelectDay);});
+['calendarMode','calendarDate'].forEach(id=>$(id).addEventListener('change',()=>{if(id==='calendarDate')salonCalendarDay=$('calendarDate').value;if(data)renderCalendar();}));
 
 function clearAbortedSale(){sessionStorage.removeItem(boot.storageKey);pendingSale=null;saving=false;cart=[];activeClient=null;activeDog=null;plannedVisit=0;requestKey=crypto.randomUUID();renderCart();$('retrySale').hidden=true;$('retryConfirmedSale').hidden=true;$('discardPendingSale').hidden=true;goToStage('client');message('Niezapisany koszyk został zamknięty. Możesz rozliczyć wizytę od nowa.');}
 function discardPendingSale(){if(!pendingSale||saving)return;modal('Zamknij niezapisany koszyk','<p>Sprawdzimy bazę i zamkniemy tę próbę zapisu. Zapisana sprzedaż nie zostanie usunięta. Planowana wizyta pozostanie w terminarzu.</p>',async()=>{const r=await api('abortsale',{requestKey:pendingSale.requestKey});if(r.state==='saved')acceptSale(r);else if(r.state==='aborted')clearAbortedSale();else throw new Error('Nie potwierdzono zamknięcia koszyka.');await refresh();});}
