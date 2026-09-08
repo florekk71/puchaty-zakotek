@@ -2,9 +2,9 @@
 require '../../main.inc.php';
 require_once __DIR__.'/lib/access.lib.php';
 header('Cache-Control: no-store');
-if (empty($user->id) || !empty($user->socid) || empty($conf->puchatyzakatek->enabled) || (!$user->admin && !$user->hasRight('puchatyzakatek','read'))) accessforbidden();
+if (empty($user->id) || !empty($user->socid) || empty($conf->puchatyzakatek->enabled) || !pz_can_read()) accessforbidden();
 $pzName=trim($user->firstname.' '.$user->lastname) ?: $user->login;
-$pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>newToken(),'storageKey'=>'pz_pending_'.((int)$conf->entity).'_'.((int)$user->id),'admin'=>(bool)$user->admin,'write'=>(bool)($user->admin || $user->hasRight('puchatyzakatek','write')),'clientCardUrl'=>DOL_URL_ROOT.'/societe/card.php',
+$pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>newToken(),'storageKey'=>'pz_pending_'.((int)$conf->entity).'_'.((int)$user->id),'admin'=>(bool)$user->admin,'write'=>(bool)pz_can_write(),'clientCardUrl'=>DOL_URL_ROOT.'/societe/card.php',
 'clientUrl'=>DOL_URL_ROOT.'/societe/card.php?action=create&customer=1&backtopage='.urlencode($_SERVER['SCRIPT_NAME']));
 ?>
 <!DOCTYPE html>

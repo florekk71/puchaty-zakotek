@@ -5,6 +5,16 @@ function pz_can_manage() {
     return !empty($user->admin) || $user->hasRight('puchatyzakatek', 'manage');
 }
 
+// Higher module roles include the lower-level operations.
+function pz_can_write() {
+    global $user;
+    return pz_can_manage() || $user->hasRight('puchatyzakatek', 'write');
+}
+function pz_can_read() {
+    global $user;
+    return pz_can_write() || $user->hasRight('puchatyzakatek', 'read');
+}
+
 function pz_route_allowed($path, $root = '') {
     $allowed = array('/custom/puchatyzakatek/index.php', '/custom/puchatyzakatek/api.php', '/custom/puchatyzakatek/document.php',
         '/custom/puchatyzakatek/logout.php', '/user/logout.php', '/custom/puchatyzakatek/password.php');

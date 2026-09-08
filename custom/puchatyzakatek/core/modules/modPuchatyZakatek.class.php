@@ -104,7 +104,7 @@ class modPuchatyZakatek extends DolibarrModules
             'langs' => 'puchatyzakatek@puchatyzakatek',
             'position' => 100,
             'enabled' => 'isModEnabled("puchatyzakatek")',
-            'perms' => '$user->admin || $user->hasRight("puchatyzakatek", "read")',
+            'perms' => '$user->admin || $user->hasRight("puchatyzakatek", "read") || $user->hasRight("puchatyzakatek", "write") || $user->hasRight("puchatyzakatek", "manage")',
             'target' => '',
             'user' => 2
         );

@@ -2,7 +2,7 @@
 require '../../main.inc.php';
 require_once __DIR__.'/lib/pz.lib.php';
 require_once __DIR__.'/lib/commerce.lib.php';
-if(empty($conf->puchatyzakatek->enabled)||empty($user->id)||!empty($user->socid)||(!$user->admin&&!$user->hasRight('puchatyzakatek','read')))accessforbidden();
+if(empty($conf->puchatyzakatek->enabled)||empty($user->id)||!empty($user->socid)||!pz_can_read())accessforbidden();
 header('Cache-Control: no-store');
 function pz_pdf_escape($v){return htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');}
 function pz_pdf_money($v){return number_format($v/100,2,',',' ').' zł';}

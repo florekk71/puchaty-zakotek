@@ -8,13 +8,13 @@ require_once __DIR__.'/lib/backup.lib.php';
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 function pz_reply($data,$code=200) { $data['_token']=(string)($_SESSION['newtoken']??''); http_response_code($code); echo json_encode($data,JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_INVALID_UTF8_SUBSTITUTE); exit; }
-if (empty($user->id) || !empty($user->socid) || empty($conf->puchatyzakatek->enabled) || (!$user->admin && !$user->hasRight('puchatyzakatek','read'))) pz_reply(array('error'=>'Brak uprawnień do modułu.'),403);
+if (empty($user->id) || !empty($user->socid) || empty($conf->puchatyzakatek->enabled) || !pz_can_read()) pz_reply(array('error'=>'Brak uprawnień do modułu.'),403);
 if ((int)($_SERVER['HTTP_X_PZ_USER']??0)!==(int)$user->id) pz_reply(array('error'=>'Zmieniono zalogowaną osobę. Odśwież stronę przed dalszą pracą.'),409);
 $action=GETPOST('op','aZ09');
 $write=$_SERVER['REQUEST_METHOD']==='POST';
 try {
     if ($write) {
-        if (!$user->admin && !$user->hasRight('puchatyzakatek','write')) pz_reply(array('error'=>'Brak uprawnień do zapisu.'),403);
+        if (!pz_can_write()) pz_reply(array('error'=>'Brak uprawnień do zapisu.'),403);
         $token=(string)GETPOST('token','alphanohtml');
         if (!$token || !hash_equals((string)($_SESSION['token']??''),$token)) pz_reply(array('error'=>'Sesja wygasła. Odśwież stronę.','code'=>'csrf'),403);
     }
