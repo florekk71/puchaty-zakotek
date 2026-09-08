@@ -127,3 +127,9 @@ Po odebraniu testu ustaw `enabled = true` w sekcji `[delivery]` i wybrane rodzaj
 Sprawdź `command -v docker`. W `crontab -e` użytkownika z dostępem do Dockera dodaj wiersz z [deploy/mail-worker.cron.example](deploy/mail-worker.cron.example), dostosowując ścieżkę Dockera. Nie zastępuj istniejącego crontaba całym plikiem. Log jest zapisywany w `~/puchaty-mail.log`; skonfiguruj jego rotację na stale działającym serwerze.
 
 Usługa cron i Docker muszą działać; użytkownik nie musi być zalogowany. Dla tej instalacji używaj jednego harmonogramu: Linux albo Windows. Weryfikuj stan wiadomości w module, w **NDG i raporty → Poczta i kolejka**. Plik z hasłem pozostaje lokalny i nie jest publikowany w repozytorium.
+
+### Wygląd wiadomości
+
+Wiadomości używają wspólnego szablonu HTML w `custom/puchatyzakatek/lib/mail-template.lib.php`: pastelowa mięta, róż i lila, przezroczyste logo PNG, czytelne szczegóły oraz dane kontaktowe z `[salon]` i `[sender]`. Szablon obejmuje rezerwację, zmianę terminu, odwołanie, przypomnienie, fakturę PDF i test SMTP. Logo jest zamieniane przez Dolibarra na osadzony załącznik CID, bez odwołań do localhost i bez zewnętrznego hostingu grafiki. Transport generuje także tekstową część wiadomości z HTML. Klient pocztowy może ukrywać obrazki; nazwa salonu i szczegóły pozostają tekstem.
+
+Po aktualizacji wykonaj polecenie `mail-worker.php test`, aby sprawdzić wygląd w swojej skrzynce. Testy lokalne obejmują HTML przy szerokościach 320, 390 i 800 px; rendering Outlooka, Gmaila i innych klientów należy potwierdzić wiadomością testową.

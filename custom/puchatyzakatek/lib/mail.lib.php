@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__.'/mail-template.lib.php';
 // SMTP secrets are mounted outside the web root. No secret values are returned by the API.
 function pz_mail_config() {
     $path=getenv('PZ_MAIL_CONFIG') ?: '/run/secrets/pz-mail.ini';
@@ -65,12 +66,13 @@ function pz_mail_reminders($c,$now=null){
     foreach($visits as $v)pz_mail_enqueue('appointment_reminder',$v['rowid'],$v['visit_date']);
 }
 function pz_mail_prepare($m,$c){
-    $file=null;$body='';$event=$m['event'];
+    $file=null;$body='';$details=array();$event=$m['event'];
     if($event==='invoice_after_payment'){
         $d=pz_store('document',$m['objectId']);if(!$d||$d['state']!=='issued'||empty($d['received']))return null;
         $to=$d['buyer']['email']??'';
         if(!filter_var($to,FILTER_VALIDATE_EMAIL))return array('skip'=>'Brak poprawnego e-mail nabywcy w dokumencie.');
         require_once __DIR__.'/document-pdf.lib.php';$file=pz_document_pdf($d);
+        $details=array('Dokument'=>$d['number'],'Data sprzedaży'=>$d['saleDate'],'Kwota'=>number_format($d['total']/100,2,',',' ').' zł','Płatność'=>'Opłacono');
         $subject='Faktura '.$d['number'].' - Puchaty Zakątek';$body="Dzień dobry,\n\nw załączniku przesyłamy opłaconą fakturę ".$d['number'].".\nDziękujemy za wizytę!";
     }else{
         $v=pz_mail_visit($m['objectId']);if(!$v)return null;
@@ -80,11 +82,12 @@ function pz_mail_prepare($m,$c){
         if($event!=='appointment_cancelled'&&(new DateTimeImmutable($v['visit_date'],new DateTimeZone('Europe/Warsaw')))->getTimestamp()<=time())return null;
         $to=$v['email'];if(!filter_var($to,FILTER_VALIDATE_EMAIL))return array('skip'=>'Brak poprawnego adresu e-mail klienta.');
         $titles=array('booking_confirmation'=>'Potwierdzenie rezerwacji','appointment_changed'=>'Zmiana terminu wizyty','appointment_cancelled'=>'Odwołanie wizyty','appointment_reminder'=>'Przypomnienie o wizycie');
+        $details=array('Pupil'=>$v['dog'],'Termin'=>(new DateTimeImmutable($v['visit_date']))->format('d.m.Y H:i').' (czas polski)');
         $subject=($titles[$event]??'Wizyta').' - Puchaty Zakątek';
         $body="Dzień dobry,\n\n".$titles[$event]."\nPies: ".$v['dog']."\nTermin: ".(new DateTimeImmutable($v['visit_date']))->format('d.m.Y H:i')." (czas polski).";
     }
     $body.="\n\n".($c['salon']['address']??'')."\nTelefon: ".($c['salon']['phone']??'')."\n".($c['salon']['footer']??'Puchaty Zakątek');
-    return array('to'=>$to,'subject'=>$subject,'body'=>$body,'file'=>$file);
+    return array('to'=>$to,'subject'=>$subject,'body'=>$body,'html'=>pz_mail_template($event,$details,$c),'file'=>$file);
 }
 function pz_mail_send($c,$payload){
     global $conf;
@@ -98,7 +101,13 @@ function pz_mail_send($c,$payload){
         $values=array('MAIN_MAIL_SENDMODE'=>'smtps','MAIN_MAIL_SMTP_SERVER'=>$c['smtp']['host'],'MAIN_MAIL_SMTP_PORT'=>(int)$c['smtp']['port'],'MAIN_MAIL_SMTPS_ID'=>$c['smtp']['username'],'MAIN_MAIL_SMTPS_PW'=>$c['smtp']['password'],'MAIN_MAIL_SMTPS_AUTH_TYPE'=>'LOGIN','MAIN_MAIL_EMAIL_TLS'=>$c['smtp']['encryption']==='tls'?1:0,'MAIN_MAIL_EMAIL_STARTTLS'=>$c['smtp']['encryption']==='starttls'?1:0,'MAIN_MAIL_EMAIL_SMTP_ALLOW_SELF_SIGNED'=>0);
         foreach($values as $k=>$v)$conf->global->{$k.'_PZ'}=$v;
         $file=$payload['file']??null;
-        $mail=new CMailFile($payload['subject'],$payload['to'],($c['sender']['name']??'Puchaty Zakątek').' <'.$c['sender']['address'].'>',$payload['body'],$file?array($file['path']):array(),$file?array('application/pdf'):array(),$file?array($file['name']):array(),'','',0,0,'','','','','pz',($c['sender']['reply_to']??'')?:$c['sender']['address']);
+        $html=$payload['html']??pz_mail_template('test',array(),$c);
+        $conf->global->MAIN_MAIL_ADD_INLINE_IMAGES_IF_DATA=1;
+        $conf->global->MAIN_MAIL_ADD_INLINE_IMAGES_IF_IN_MEDIAS=0;
+        $conf->global->MAIN_MAIL_FORCE_CONTENT_TYPE_TO_HTML=0;
+        $tmp=DOL_DATA_ROOT.'/puchatyzakatek/'.pz_entity().'/mail-images';
+        if(!is_dir($tmp)&&!mkdir($tmp,0770,true)&&!is_dir($tmp))throw new RuntimeException('Nie mozna przygotowac logo wiadomosci.');
+        $mail=new CMailFile($payload['subject'],$payload['to'],($c['sender']['name']??'Puchaty Zakątek').' <'.$c['sender']['address'].'>',$html,$file?array($file['path']):array(),$file?array('application/pdf'):array(),$file?array($file['name']):array(),'','',0,1,'','','','','pz',($c['sender']['reply_to']??'')?:$c['sender']['address'],$tmp);
         if(is_object($mail->smtps))$mail->smtps->setSMTPTimeout(max(5,min(60,(int)($c['smtp']['timeout_seconds']??20)))); if(!$mail->sendfile())throw new RuntimeException('SMTP nie potwierdzil wyslania. Sprawdz ustawienia i skrzynke odbiorcy przed ponowieniem.');
     }finally{$conf->global=$saved;}
 }
