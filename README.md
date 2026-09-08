@@ -6,7 +6,7 @@ Repozytorium zawiera kod projektu. Nie zawiera kont użytkowników, haseł, klie
 
 ## Logo na ekranie logowania
 
-Dockerfile instaluje logo Puchatego Zakątka zamiast logo Dolibarra i usuwa widoczny nagłówek z wersją Dolibarra. Nie zmienia mechanizmu uwierzytelniania. Po pobraniu aktualizacji uruchom `docker compose up -d --build dolibarr`, a następnie odśwież stronę Ctrl+F5.
+Dockerfile instaluje przezroczyste logo Puchatego Zakątka zamiast logo Dolibarra i usuwa widoczne nagłówki nad logo. Logo ma 260 px na komputerze i 220 px na telefonie; nazwa w karcie przeglądarki pozostaje bez zmian. Nie zmienia mechanizmu uwierzytelniania. Po pobraniu aktualizacji uruchom `docker compose up -d --build dolibarr`, a następnie odśwież stronę Ctrl+F5.
 
 Na dotychczasowej instalacji Windows w `C:\PuchatyZakatek` można zamiast przebudowy obrazu uruchomić z pobranego repozytorium:
 

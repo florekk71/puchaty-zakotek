@@ -94,6 +94,21 @@ PHP;
 }
 // Upgrade existing branded templates as well as fresh installations.
 $source=str_replace('/custom/puchatyzakatek/img/logo.jpg','/custom/puchatyzakatek/img/logo-transparent.png',$source);
+// Keep the accessible image label and browser title; remove only the duplicate visible heading.
+$source=str_replace('<h1 class="pz-login-heading">Puchaty Zakątek</h1>','',$source);
+$source=str_replace(' style="width:180px !important;height:180px !important;max-height:180px !important;max-width:80vw;object-fit:contain"','',$source);
+if(!str_contains($source,'PZ_LOGIN_LOGO_V3')){
+    $anchor='<div class="login_table">';
+    if(substr_count($source,$anchor)!==1)throw new RuntimeException('Unsupported login logo layout');
+    $style=<<<'HTML'
+<!-- PZ_LOGIN_LOGO_V3 -->
+<style>
+body.bodylogin #img_logo {width:260px !important;height:260px !important;max-height:260px !important;max-width:100% !important;object-fit:contain;}
+@media(max-width:600px){body.bodylogin #img_logo{width:220px !important;height:220px !important;max-height:220px !important;}}
+</style>
+HTML;
+    $source=str_replace($anchor,$style."\n".$anchor,$source);
+}
 if(file_put_contents($targetPath,$source)===false)throw new RuntimeException('Cannot write branded login template');
 echo "PZ_LOGIN_BRAND_OK\n";
 
