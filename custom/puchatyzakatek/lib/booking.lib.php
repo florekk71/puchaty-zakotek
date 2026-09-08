@@ -132,3 +132,23 @@ function pz_booking_block_release($input){
     $b['active']=false;$b['releasedBy']=(int)$user->id;$b['releasedAt']=date('c');pz_put('calendar_block',$id,$b);
     return array('ok'=>true);
 }
+
+// Convert atomically under the same salon lock; the slot never becomes publicly free.
+function pz_booking_block_visit($input){
+    global $db,$user;
+    $id=pz_text($input,'id',128,true);$block=pz_store('calendar_block',$id);
+    if(!$block)throw new InvalidArgumentException('Nie znaleziono blokady.');
+    $dog=pz_dog($input['dogId']??0);
+    if(!empty($block['visitId'])){
+        $visit=pz_visit($block['visitId']);
+        if((int)$visit['fk_dog']!==(int)$dog['rowid'])throw new InvalidArgumentException('Blokadę przypisano już do innego psa.');
+        return array('id'=>(int)$block['visitId']);
+    }
+    if(empty($block['active']))throw new InvalidArgumentException('Ten termin został już zwolniony.');
+    $block['active']=false;pz_put('calendar_block',$id,$block);
+    $date=pz_booking_assert($block['date'],0,false,array());
+    pz_query('INSERT INTO '.MAIN_DB_PREFIX.'pz_visit (fk_soc,fk_dog,visit_date,status,notes,datec) VALUES ('
+        .(int)$dog['fk_soc'].','.(int)$dog['rowid'].','.pz_q($date).",'planned',".pz_q('Wizyta przypisana z blokady terminu.').',NOW())');
+    $block['visitId']=(int)$db->last_insert_id(MAIN_DB_PREFIX.'pz_visit');$block['convertedBy']=(int)$user->id;
+    pz_put('calendar_block',$id,$block);return array('id'=>$block['visitId']);
+}

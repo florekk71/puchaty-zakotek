@@ -104,6 +104,7 @@ try {
         $key=pz_text($data,'requestKey',64,true);$saved=pz_store('block_request',$key);
         if($saved){$result=$saved;break;}
         $result=pz_booking_block_save($data);pz_put('block_request',$key,$result);break;
+    case 'blockvisit': $result=pz_booking_block_visit($data);break;
     case 'unblock': $result=pz_booking_block_release($data);break;
     case 'plan':
         $dog=pz_dog($data['dogId']??0); $date=pz_booking_staff_assert($data['date']??'');

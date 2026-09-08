@@ -181,3 +181,7 @@ Pracownik z prawem zapisu modułu może użyć „Zablokuj termin” w terminarz
 ### Własne godziny obsługi salonu
 
 Dodawanie i zmiana terminu w panelu pozwala wpisać godzinę poza grafikiem portalu (także dzień wolny). Nadal obowiązują 3 godziny trwania, godzina wyprzedzenia, kolizje i dzienny limit. Blokada ma opcjonalne pole własnej godziny, zastępujące zaznaczone standardowe okienka. Portal zachowuje grafik z konfiguracji i nie ujawnia godzin dodatkowych wizyt; pokazuje jedynie dostępność standardowych okienek.
+
+### Rozliczenie blokady
+
+Kafelek blokady ma przycisk „Rozlicz”. Wybór klienta i psa oraz zatwierdzenie przypisuje termin do planowanej wizyty i otwiera usługi w POS. Miejsce pozostaje zajęte przez całą operację. Przerwanie dalszego rozliczenia pozostawia wizytę w terminarzu. Ponowienie przypisania zwraca tę samą wizytę. „Zwolnij termin” nadal służy do usunięcia aktywnej blokady z dostępności.

@@ -148,6 +148,26 @@ function earliestReservation(){
  return parts.year+'-'+parts.month+'-'+parts.day+'T'+parts.hour+':'+parts.minute;
 }
 function reservationField(value){return field('date','Termin (czas polski)',value,'datetime-local','required min="'+earliestReservation()+'"')+'<p class="muted">W panelu możesz wpisać godzinę poza okienkami portalu. Wizyta trwa 3 godziny; minimum godzinę do przodu.</p>';}
+async function checkoutVisit(id){
+ await refresh();const v=data.visits.find(v=>Number(v.rowid)===Number(id));if(!v||v.status!=='planned')throw new Error('Wizyta nie jest już planowana. Sprawdź jej status w historii.');const c=data.clients.find(c=>Number(c.id)===Number(v.fk_soc)),d=data.dogs.find(d=>Number(d.id)===Number(v.fk_dog));if(!c||!d)throw new Error('Brak dostępu do klienta lub aktywnej kartoteki psa tej wizyty.');activeClient=c;activeDog=d;clearCart();plannedVisit=Number(v.rowid);showView('pos');goToStage('service');
+}
+function blockCheckoutForm(id){
+ if(!canWrite())return;
+ const block=(data.blocks||[]).find(b=>b.id===id);
+ if(!block)throw new Error('Odśwież terminarz — blokada nie jest już dostępna.');
+ const clients=data.clients;
+ modal('Rozlicz zablokowany termin','<p style="grid-column:1/-1">Termin: '+esc(block.date.slice(0,16))+'. Wybierz klienta i psa. Blokada zmieni się w wizytę, potem wybierzesz usługi i płatność.</p>'+selectField('blockClient','Klient',[[0,'Wybierz klienta'],...clients.map(c=>[c.id,c.name])],0)+selectField('blockDog','Pies',[[0,'Najpierw wybierz klienta']],0),async values=>{
+  const dog=data.dogs.find(d=>Number(d.id)===Number(values.blockDog)&&Number(d.clientId)===Number(values.blockClient));
+  if(!dog)throw new Error('Wybierz klienta i jego psa.');
+  const result=await api('blockvisit',{id,dogId:dog.id});await checkoutVisit(result.id);
+  message('Termin przypisany do wizyty. Wybierz usługi i zakończ sprzedaż.');
+ });
+ $('modalSave').textContent='Przypisz i przejdź do usług';
+ $('f_blockClient').addEventListener('change',()=>{
+  const dogs=data.dogs.filter(d=>Number(d.clientId)===Number($('f_blockClient').value));
+  $('f_blockDog').innerHTML='<option value="0">Wybierz psa</option>'+dogs.map(d=>'<option value="'+Number(d.id)+'">'+esc(d.name)+'</option>').join('');
+ });
+}
 async function blockForm(from=today()){
  if(!canWrite())return;
  const result=await api('blockslots',undefined,{from}),slots=result.day.slots.filter(s=>s.available),key=crypto.randomUUID();
@@ -253,7 +273,7 @@ function exportCsv(kind){
 document.addEventListener('click',async event=>{
   const b=event.target.closest('button');if(!b||b.disabled||saving)return;
   try{
-    if(pendingSale&&(b.dataset.client||b.dataset.dog||b.dataset.service||b.dataset.remove!==undefined||b.dataset.checkout||b.dataset.pay)){await checkPendingSale();if(pendingSale)return;}
+    if(pendingSale&&(b.dataset.client||b.dataset.dog||b.dataset.service||b.dataset.remove!==undefined||b.dataset.checkout||b.dataset.blockCheckout||b.dataset.pay)){await checkPendingSale();if(pendingSale)return;}
     if(b.dataset.view)showView(b.dataset.view);
     if(b.dataset.archiveKind){archiveForm(b.dataset.archiveKind,Number(b.dataset.archiveId));return;}
     if(b.dataset.restoreKind){await api('restore',{kind:b.dataset.restoreKind,id:Number(b.dataset.restoreId)});await refresh();message('Kartoteka przywrócona.');return;}
@@ -263,13 +283,14 @@ document.addEventListener('click',async event=>{
     if(b.dataset.remove!==undefined){cart.splice(Number(b.dataset.remove),1);requestKey=crypto.randomUUID();renderCart();}
     if(b.dataset.editVisit)editVisit(Number(b.dataset.editVisit));
     if(b.dataset.blockDate){await blockForm(b.dataset.blockDate);return;}
+    if(b.dataset.blockCheckout){blockCheckoutForm(b.dataset.blockCheckout);return;}
     if(b.dataset.unblock){const id=b.dataset.unblock;modal('Zwolnij termin','<p>Okienko ponownie będzie dostępne do rezerwacji.</p>',async()=>{await api('unblock',{id});await refresh();message('Termin zwolniony.');});return;}
     if(b.dataset.planDate)await planForm(b.dataset.planDate);
     if(b.dataset.calendarShift)shiftCalendar(Number(b.dataset.calendarShift));
     if(b.dataset.editDog)dogForm(b.dataset.editDog);
     if(b.dataset.pay){payment=b.dataset.pay;document.querySelectorAll('.pay').forEach(x=>x.classList.toggle('active',x===b));}
     if(b.dataset.receipt)await printReceipt(Number(b.dataset.receipt));
-    if(b.dataset.checkout){await refresh();const v=data.visits.find(v=>Number(v.rowid)===Number(b.dataset.checkout));if(!v||v.status!=='planned')throw new Error('Wizyta nie jest już planowana. Sprawdź jej status w historii.');const c=data.clients.find(c=>Number(c.id)===Number(v.fk_soc)),d=data.dogs.find(d=>Number(d.id)===Number(v.fk_dog));if(!c||!d)throw new Error('Brak dostępu do klienta lub aktywnej kartoteki psa tej wizyty.');activeClient=c;activeDog=d;clearCart();plannedVisit=Number(v.rowid);showView('pos');goToStage('service');}
+    if(b.dataset.checkout)await checkoutVisit(Number(b.dataset.checkout));
     if(b.dataset.cancel){const id=Number(b.dataset.cancel);modal('Odwołaj wizytę','<p>Wizyta pozostanie w historii ze statusem „Anulowana”.</p>',async()=>{await api('cancel',{id});await refresh();message('Wizyta odwołana. Pozostaje w historii.');});}
     if(b.dataset.paid){const id=Number(b.dataset.paid);modal('Zarejestruj otrzymaną wpłatę',field('date','Data otrzymania',today(),'date','required'),async values=>{await api('paid',{id,...values});await refresh();message('Wpłata zarejestrowana.');});}
     const action=b.dataset.action;
@@ -318,7 +339,7 @@ function renderCalendar(){
   const d=new Date(start);d.setDate(d.getDate()+i);const iso=calendarIso(d);dates.push(iso);
   const visits=data.visits.filter(v=>v.visit_date.slice(0,10)===iso&&v.status!=='cancelled').sort((a,b)=>a.visit_date.localeCompare(b.visit_date));
   const blocks=(data.blocks||[]).filter(b=>b.date.slice(0,10)===iso).sort((a,b)=>a.date.localeCompare(b.date));
-  const blockHtml=blocks.map(b=>'<article class="calendar-event salon-block"><strong>'+esc(b.date.slice(11,16))+' · Zablokowane</strong><p>'+esc(b.by)+'</p>'+(canWrite()?'<button class="btn ghost" data-unblock="'+esc(b.id)+'">Zwolnij termin</button>':'')+'</article>').join('');
+  const blockHtml=blocks.map(b=>'<article class="calendar-event salon-block"><strong>'+esc(b.date.slice(11,16))+' · Zablokowane</strong><p>'+esc(b.by)+'</p>'+(canWrite()?'<button class="btn soft" data-block-checkout="'+esc(b.id)+'">Rozlicz ↗</button> <button class="btn ghost" data-unblock="'+esc(b.id)+'">Zwolnij termin</button>':'')+'</article>').join('');
   const weekday=esc(d.toLocaleDateString('pl-PL',{weekday:'short'}));
   tabHtml.push('<button type="button" class="salon-mobile-day" data-salon-select-day="'+iso+'" aria-label="'+esc(d.toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'}))+', wizyty: '+visits.length+'"><span>'+weekday+'</span><strong>'+d.getDate()+'</strong><small>'+visits.length+'</small></button>');
   const events=visits.map(v=>'<article class="calendar-event '+visitStatusClass(v.status)+'"><div class="salon-event-top"><time class="salon-event-time">'+esc(v.visit_date.slice(11,16))+'</time>'+visitStatusBadge(v.status)+'</div><strong class="salon-event-dog">'+esc(v.dog)+'</strong><div class="salon-event-client">'+esc(v.client)+'</div>'+(v.notes?'<p class="salon-event-notes">'+esc(v.notes)+'</p>':'')+(canWrite()&&v.status==='planned'?'<div class="salon-event-actions"><button class="btn soft" data-checkout="'+Number(v.rowid)+'">Rozlicz ↗</button><button class="btn ghost" data-edit-visit="'+Number(v.rowid)+'">Edytuj termin</button><button class="btn ghost" data-cancel="'+Number(v.rowid)+'">Odwołaj wizytę</button></div>':'')+'</article>').join('');
