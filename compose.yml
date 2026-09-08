@@ -1,0 +1,41 @@
+services:
+  mariadb:
+    image: mariadb:11.8
+    container_name: puchaty-mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: dolibarr
+      MARIADB_USER: dolibarr
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:?Set MARIADB_PASSWORD in .env}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?Set MARIADB_ROOT_PASSWORD in .env}
+    volumes:
+      - ./data/mariadb:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+  dolibarr:
+    build: .
+    container_name: puchaty-dolibarr
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      DOLI_DB_HOST: mariadb
+      DOLI_DB_NAME: dolibarr
+      DOLI_DB_USER: dolibarr
+      DOLI_DB_PASSWORD: ${MARIADB_PASSWORD:?Set MARIADB_PASSWORD in .env}
+      DOLI_ADMIN_LOGIN: ${DOLI_ADMIN_LOGIN:-admin}
+      DOLI_ADMIN_PASSWORD: ${DOLI_ADMIN_PASSWORD:?Set DOLI_ADMIN_PASSWORD in .env}
+      DOLI_URL_ROOT: ${DOLI_URL_ROOT:?Set DOLI_URL_ROOT in .env}
+      DOLI_INSTANCE_UNIQUE_ID: ${DOLI_INSTANCE_UNIQUE_ID:?Set DOLI_INSTANCE_UNIQUE_ID in .env}
+      DOLI_INIT_DEMO: "0"
+      PHP_INI_DATE_TIMEZONE: Europe/Warsaw
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${HTTP_PORT:-8180}:80"
+    volumes:
+      - ./data/documents:/var/www/documents
+      - ./custom:/var/www/html/custom

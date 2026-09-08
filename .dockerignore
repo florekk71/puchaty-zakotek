@@ -1,0 +1,9 @@
+.git
+.env
+.env.*
+data
+documents
+mariadb
+backup
+backups
+*.zip

@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+data/
+documents/
+mariadb/
+backup/
+backups/
+*.log
+*.dump
+*.bak
+conf.php
+.DS_Store
+Thumbs.db

@@ -1,0 +1,1 @@
+console.log("Puchaty Zakątek loaded");

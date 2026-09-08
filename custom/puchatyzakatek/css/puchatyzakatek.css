@@ -1,0 +1,12 @@
+.info-box {
+    background: linear-gradient(135deg, #fce8ed, #eaf7f2);
+    border: 1px solid #eadfda;
+    border-radius: 18px;
+    padding: 24px;
+    margin-top: 20px;
+}
+
+.info-box h2 {
+    color: #8d4050;
+    margin-top: 0;
+}
