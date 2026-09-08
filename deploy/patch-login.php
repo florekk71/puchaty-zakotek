@@ -45,5 +45,14 @@ $conf->global->MAIN_FAVICON_URL = DOL_URL_ROOT.'/custom/puchatyzakatek/img/logo.
 PHP;
     $source=str_replace($anchor,$code."\n".$anchor,$source);
 }
+if(!str_contains($source,'PZ_LOGIN_TITLE_V1')){
+    $anchor="top_htmlhead('', \$titleofloginpage";
+    if(substr_count($source,$anchor)!==1)throw new RuntimeException('Unsupported login title call');
+    $code=<<<'PHP'
+// PZ_LOGIN_TITLE_V1
+$titleofloginpage = 'Puchaty Zakątek';
+PHP;
+    $source=str_replace($anchor,$code."\n".$anchor,$source);
+}
 if(file_put_contents($targetPath,$source)===false)throw new RuntimeException('Cannot write branded login template');
 echo "PZ_LOGIN_BRAND_OK\n";
