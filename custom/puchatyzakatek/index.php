@@ -240,6 +240,21 @@ $pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>
 @media(prefers-reduced-motion:reduce){.service,.client-card,.dog-card{transition:none}}
 
 
+
+/* Status labels supplement color for accessibility. */
+.calendar-day{background:#fffaf7;border:1px solid #eadfda}
+.calendar-day-empty{background:#f7f3ed;border:1px dashed #d9cec1}
+.calendar-empty{padding:14px 10px;border-radius:12px;background:#eee8df;color:#655b50;text-align:center;font-size:13px}
+.calendar-event{border-left-width:5px}
+.calendar-event.status-planned{background:#fbe8ef;border-color:#dca3b7;color:#633647}
+.calendar-event.status-completed{background:#e5f4ed;border-color:#80b89b;color:#285740}
+.calendar-event.status-cancelled{background:#efedf0;border-color:#b7aeb9;color:#655d68}
+.visit-status{display:inline-block;padding:5px 9px;margin:6px 0 2px;border-radius:999px;font-size:12px;font-weight:700;line-height:1.4}
+.visit-status.status-planned{background:#f2cad9;color:#653148}
+.visit-status.status-completed{background:#c7e7d5;color:#244e38}
+.visit-status.status-cancelled,.visit-status.status-unknown{background:#e2dce5;color:#534b58}
+.calendar-legend{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px;font-size:12px;align-items:center}
+.calendar-legend .calendar-empty{padding:5px 9px;margin:6px 0 2px}
 </style>
 </head>
 <body>
@@ -391,7 +406,7 @@ $pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>
       
 <section class="view" id="clients"><div class="card"><div class="section-title"><h3>Klienci</h3><button class="btn primary" data-action="client" data-write>+ Dodaj klienta</button></div><input id="clientListSearch" class="input" placeholder="Szukaj po nazwie, telefonie lub e-mailu"><div id="clientList"></div></div></section>
 <section class="view" id="dogs"><div class="card"><div class="section-title"><h3>Kartoteka psów</h3><button class="btn primary" data-action="dog" data-write>+ Dodaj psa</button></div><div id="dogList"></div></div></section>
-<section class="view" id="calendar"><div class="card"><div class="section-title"><h3>Terminarz i historia wizyt</h3><button class="btn primary" data-action="plan" data-write>+ Nowa wizyta</button></div><div class="formgrid"><div class="field"><label for="visitFrom">Od</label><input type="date" id="visitFrom" class="input"></div><div class="field"><label for="visitTo">Do</label><input type="date" id="visitTo" class="input"></div></div><div class="calendar-toolbar"><label>Widok <select id="calendarMode" class="select"><option value="week">Tydzień</option><option value="day">Dzień</option><option value="list">Lista</option></select></label><button class="btn ghost" data-calendar-shift="-1">← Poprzedni</button><label>Data <input type="date" class="input" id="calendarDate"></label><button class="btn ghost" data-calendar-shift="1">Następny →</button><button class="btn ghost" data-action="calendar-today">Dzisiaj</button></div><p id="calendarRange"></p><div id="calendarBoard"></div><details><summary>Historia i lista wizyt — filtr Od / Do</summary><div id="visitList"></div></details></div></section>
+<section class="view" id="calendar"><div class="card"><div class="section-title"><h3>Terminarz i historia wizyt</h3><button class="btn primary" data-action="plan" data-write>+ Nowa wizyta</button></div><div class="formgrid"><div class="field"><label for="visitFrom">Od</label><input type="date" id="visitFrom" class="input"></div><div class="field"><label for="visitTo">Do</label><input type="date" id="visitTo" class="input"></div></div><div class="calendar-toolbar"><label>Widok <select id="calendarMode" class="select"><option value="week">Tydzień</option><option value="day">Dzień</option><option value="list">Lista</option></select></label><button class="btn ghost" data-calendar-shift="-1">← Poprzedni</button><label>Data <input type="date" class="input" id="calendarDate"></label><button class="btn ghost" data-calendar-shift="1">Następny →</button><button class="btn ghost" data-action="calendar-today">Dzisiaj</button></div><p id="calendarRange"></p><div class="calendar-legend" aria-label="Kolory statusów"><span class="visit-status status-planned">Zarezerwowana</span><span class="visit-status status-completed">Rozliczona</span><span class="calendar-empty">Brak wizyt</span></div><div id="calendarBoard"></div><details><summary>Historia i lista wizyt — filtr Od / Do</summary><div id="visitList"></div></details></div></section>
 <section class="view" id="costs"><div class="card"><div class="section-title"><h3>Ewidencja kosztów</h3><button class="btn primary" data-action="expense" data-write>+ Dodaj koszt</button></div><div id="expenseList"></div></div></section>
 <section class="view" id="accounting"><div class="card"><h3>Okres zestawienia</h3><div class="formgrid"><div class="field"><label for="reportFrom">Od</label><input class="input" type="date" id="reportFrom"></div><div class="field"><label for="reportTo">Do</label><input class="input" type="date" id="reportTo"></div></div><p class="muted">Zestawienie zapisanych wizyt, wpłat i kosztów. Eksport obejmuje wybrany okres.</p></div><div id="accountingTotals" class="kpis"></div><div class="card"><p id="limitInfo"></p><button class="btn soft" data-action="export-sales">Eksport wizyt CSV</button> <button class="btn mint" data-action="export-expenses">Eksport kosztów CSV</button><p class="muted">To zestawienie pomocnicze, bez generowania deklaracji PIT.</p></div></section>
 <section class="view" id="reports"><div class="card"><h3>Raport wizyt</h3><p id="reportSummary"></p><div class="formgrid"><div class="field"><label for="visitReportFrom">Od</label><input class="input" type="date" id="visitReportFrom"></div><div class="field"><label for="visitReportTo">Do</label><input class="input" type="date" id="visitReportTo"></div></div><p><button class="btn soft" data-visit-period="month">Ten miesiąc</button> <button class="btn soft" data-visit-period="year">Ten rok</button> <button class="btn ghost" data-action="export-sales">Eksport wizyt CSV</button> <button class="btn ghost" id="printVisitReport">Drukuj raport</button></p><div id="visitReportCharts"></div><h4>Podsumowanie miesięczne</h4><div id="reportTable"></div></div></section>
@@ -412,6 +427,6 @@ $pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>
 </div>
 
 <script type="application/json" id="pzBoot"><?php echo json_encode($pzBoot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE); ?></script>
-<script src="js/app.js?v=0.5.5"></script><script src="js/reports.js?v=0.5.5"></script><script src="js/visit-reports.js?v=0.5.5"></script><script src="js/commerce.js?v=0.5.5"></script>
+<script src="js/app.js?v=0.5.6-calendar-colors"></script><script src="js/reports.js?v=0.5.5"></script><script src="js/visit-reports.js?v=0.5.5"></script><script src="js/commerce.js?v=0.5.5"></script>
 </body>
 </html>
