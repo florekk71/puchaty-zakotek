@@ -105,3 +105,25 @@ Po niepotwierdzonym wyniku SMTP pozycja ma stan **Do sprawdzenia**. SMTP nie zap
 Dane SMTP są czytane z `/run/secrets/pz-mail.ini` (alternatywnie ścieżka `PZ_MAIL_CONFIG`). Obsługiwana jest bieżąca jednostka Dolibarra; standardowa instalacja używa jednostki 1. Kolejka znajduje się w istniejącej tabeli modułu `pz_store`, więc nie wymaga migracji tabel. Kod PDF jest wspólny dla podglądu i załącznika. Wydruk 80 mm pozostaje odrębny.
 
 Testy lokalne obejmują kolejkę i transport zastępczy. Test z prawdziwą skrzynką wymaga uzupełnienia prywatnej konfiguracji na docelowym serwerze.
+
+### Poczta na Linuxie — uruchomienie
+
+Uzupełnij `mail-config.ini` obok pliku Compose. W `services.dolibarr.volumes` dodaj:
+
+```yaml
+- ./mail-config.ini:/run/secrets/pz-mail.ini:ro
+```
+
+Z katalogu projektu wykonaj:
+
+```bash
+docker compose up -d --no-deps --force-recreate dolibarr
+docker exec puchaty-dolibarr php /var/www/html/custom/puchatyzakatek/scripts/mail-worker.php check
+docker exec puchaty-dolibarr php /var/www/html/custom/puchatyzakatek/scripts/mail-worker.php test
+```
+
+Po odebraniu testu ustaw `enabled = true` w sekcji `[delivery]` i wybrane rodzaje wiadomości na `true` w `[messages]`. Ponownie odtwórz kontener pierwszym poleceniem, aby zamontował aktualny plik konfiguracji.
+
+Sprawdź `command -v docker`. W `crontab -e` użytkownika z dostępem do Dockera dodaj wiersz z [deploy/mail-worker.cron.example](deploy/mail-worker.cron.example), dostosowując ścieżkę Dockera. Nie zastępuj istniejącego crontaba całym plikiem. Log jest zapisywany w `~/puchaty-mail.log`; skonfiguruj jego rotację na stale działającym serwerze.
+
+Usługa cron i Docker muszą działać; użytkownik nie musi być zalogowany. Dla tej instalacji używaj jednego harmonogramu: Linux albo Windows. Weryfikuj stan wiadomości w module, w **NDG i raporty → Poczta i kolejka**. Plik z hasłem pozostaje lokalny i nie jest publikowany w repozytorium.

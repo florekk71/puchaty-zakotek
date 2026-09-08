@@ -1,0 +1,4 @@
+# Przyklad do crontab uzytkownika (crontab -e), nie bezposrednio do /etc/cron.d.
+# Uzytkownik musi miec dostep do Dockera. Sprawdz sciezke: command -v docker.
+# Wymagane dzialajace Docker oraz cron i zamontowany mail-config.ini.
+* * * * * /usr/bin/docker exec puchaty-dolibarr php /var/www/html/custom/puchatyzakatek/scripts/mail-worker.php run >> "$HOME/puchaty-mail.log" 2>&1
