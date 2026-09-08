@@ -39,3 +39,9 @@ services:
     volumes:
       - ./data/documents:/var/www/documents
       - ./custom:/var/www/html/custom
+      - type: bind
+        source: ${PZ_PORTAL_CONFIG_FILE:-./deploy/portal-config.example.ini}
+        target: /run/secrets/pz-portal.ini
+        read_only: true
+        bind:
+          create_host_path: false

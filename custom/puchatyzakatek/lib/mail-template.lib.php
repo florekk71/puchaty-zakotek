@@ -2,6 +2,7 @@
 function pz_mail_escape($value){return htmlspecialchars((string)$value,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');}
 function pz_mail_template($event,$details,$config,$logoSrc=null){
     $themes=array(
+        'portal_login'=>array('Strefa klienta','Twój kod logowania','Wpisz poniższy kod w Strefie klienta. Jeśli nie prosisz o logowanie, pomiń tę wiadomość. Nie udostępniaj kodu innym osobom.','#e4f2eb','#315f50'),
         'owner_booking_confirmation'=>array('Powiadomienie dla salonu','Nowa rezerwacja','W terminarzu zapisano nową wizytę. Poniżej znajdziesz jej szczegóły.','#e4f2eb','#315f50'),
         'owner_appointment_changed'=>array('Powiadomienie dla salonu','Zmieniono termin wizyty','Termin rezerwacji został zmieniony. Poniżej widoczny jest aktualny termin.','#eee8f6','#615073'),
         'owner_appointment_cancelled'=>array('Powiadomienie dla salonu','Odwołano wizytę','Poniższa rezerwacja została odwołana w terminarzu.','#eeebef','#645c69'),

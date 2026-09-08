@@ -170,7 +170,10 @@ function pz_sale($data) {
         if ((int)$db->affected_rows($updateResult)!==1) throw new RuntimeException('Wizyta została już rozliczona.');
         $id=$planned;
     } else {
-        pz_query('INSERT INTO '.MAIN_DB_PREFIX.'pz_visit (fk_soc,fk_dog,visit_date,status,payment_type,amount_total,notes,datec) VALUES ('.$client.','.(int)$dog['rowid'].",NOW(),'completed',".pz_q($payment).','.($total/100).','.pz_q(pz_text($data,'notes',5000)).',NOW())');
+        require_once __DIR__.'/booking.lib.php';
+        $visitDate=(new DateTimeImmutable('now',new DateTimeZone('Europe/Warsaw')))->format('Y-m-d H:i:s');
+        pz_booking_assert($visitDate,0,false,array());
+        pz_query('INSERT INTO '.MAIN_DB_PREFIX.'pz_visit (fk_soc,fk_dog,visit_date,status,payment_type,amount_total,notes,datec) VALUES ('.$client.','.(int)$dog['rowid'].','.pz_q($visitDate).",'completed',".pz_q($payment).','.($total/100).','.pz_q(pz_text($data,'notes',5000)).',NOW())');
         $id=(int)$db->last_insert_id(MAIN_DB_PREFIX.'pz_visit');
     }
     foreach ($lines as $s) pz_query('INSERT INTO '.MAIN_DB_PREFIX.'pz_visit_line (fk_visit,service_name,qty,unit_price,total_price) VALUES ('.$id.','.pz_q($s['name']).',1,'.($s['price']/100).','.($s['price']/100).')');

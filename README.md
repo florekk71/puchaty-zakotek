@@ -151,3 +151,13 @@ docker exec puchaty-dolibarr php /var/www/html/custom/puchatyzakatek/scripts/che
 ```
 
 Następnie możesz wykonać `mail-worker.php test` do skonfigurowanego `test_recipient`. Nie ponawiaj masowo wiadomości oznaczonych „Do sprawdzenia” bez sprawdzenia logów SMTP i skrzynki odbiorcy. Lokalne zmiany `mail.lib.php` na serwerze wymagają porównania przed aktualizacją z Gita.
+
+### Strefa klienta: Google, e-mail i anonimowy terminarz
+
+Dodano `/custom/puchatyzakatek/portal/`: osobne konta klientów z logowaniem Google lub jednorazowym kodem e-mail (pierwsze potwierdzenie zakłada konto), własne psy i wizyty, rezerwację i odwołanie. Zajęte terminy innych klientów pokazują tylko godziny. Zachowano przezroczyste logo i pastelowy wygląd, również na telefonach.
+
+Wspólne zasady portalu i terminarza pracowników: 3 godziny na psa, maksymalnie 3 psy dziennie, minimum godzina wyprzedzenia; zapis z kontrolą nakładania wizyt w transakcji. Rozliczenie już zaplanowanej wizyty nie zwiększa liczby rezerwacji. Domyślnie portal jest wyłączony, a puste godziny we wzorze nie blokują pracowników.
+
+**Konfiguracja pozostaje w prywatnych plikach.** Skopiuj [wzór portal-config.ini](deploy/portal-config.example.ini), wpisz godziny, domenę, konfigurację logowania i włącz portal zgodnie z [instrukcją Windows / Linux](deploy/PORTAL.md). Google i kody e-mail wymagają konfiguracji oraz testu na docelowej instalacji; samo pobranie kodu ich nie uruchamia. Do GitHuba nie trafiają sekrety, konta klientów ani baza.
+
+Testy logiki i izolacji danych: `php tests/portal.php` (pdo_sqlite, mbstring), bez produkcyjnej bazy i wysyłania poczty.

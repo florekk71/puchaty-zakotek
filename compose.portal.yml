@@ -1,0 +1,16 @@
+# Używaj razem z compose.yml. Pliki muszą istnieć przed uruchomieniem.
+services:
+  dolibarr:
+    volumes:
+      - type: bind
+        source: ./portal-config.ini
+        target: /run/secrets/pz-portal.ini
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./mail-config.ini
+        target: /run/secrets/pz-mail.ini
+        read_only: true
+        bind:
+          create_host_path: false

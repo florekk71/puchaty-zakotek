@@ -9,3 +9,4 @@ backups
 *.zip
 
 mail-config.ini
+portal-config.ini
