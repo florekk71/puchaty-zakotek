@@ -177,3 +177,7 @@ Przy płatności opcja „Wystaw fakturę” jest domyślnie wyłączona. Rozlic
 ### Blokowanie okienek bez klienta
 
 Pracownik z prawem zapisu modułu może użyć „Zablokuj termin” w terminarzu, wybrać dzień i zaznaczyć od 1 do 3 dostępnych okienek po 3 godziny. Blokady obowiązują cały salon: portal, dodawanie wizyt i podpowiedź najbliższego terminu. Kafelek blokady zawiera nazwisko pracownika i przycisk „Zwolnij termin”. Publicznie widoczna jest tylko zajętość. Blokady są zapisane oddzielnie od wizyt, nie generują sprzedaży, dokumentów ani wiadomości do klientów. Operacja kilku blokad jest atomowa i używa wspólnej blokady transakcyjnej z rezerwacjami. Dane mieszczą się w istniejącej tabeli pz_store.
+
+### Własne godziny obsługi salonu
+
+Dodawanie i zmiana terminu w panelu pozwala wpisać godzinę poza grafikiem portalu (także dzień wolny). Nadal obowiązują 3 godziny trwania, godzina wyprzedzenia, kolizje i dzienny limit. Blokada ma opcjonalne pole własnej godziny, zastępujące zaznaczone standardowe okienka. Portal zachowuje grafik z konfiguracji i nie ujawnia godzin dodatkowych wizyt; pokazuje jedynie dostępność standardowych okienek.

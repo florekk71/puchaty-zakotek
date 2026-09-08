@@ -52,6 +52,10 @@ function pz_booking_rows($from,$to) {
     }
     return $rows;
 }
+function pz_booking_staff_assert($date,$exclude=0,$c=null,$now=null) {
+    $c=$c??pz_portal_config();$c['calendar']['enforce_hours']=false;
+    return pz_booking_assert($date,$exclude,true,$c,$now);
+}
 function pz_booking_assert($date,$exclude=0,$checkLead=true,$c=null,$now=null) {
     $c=$c??pz_portal_config();$zone=new DateTimeZone('Europe/Warsaw');$now=$now??new DateTimeImmutable('now',$zone);
     $date=$checkLead?pz_reservation_date($date,$now):pz_date($date,true);
@@ -79,8 +83,18 @@ function pz_booking_calendar($from,$c,$now=null) {
             $available=$inRange&&$s->getTimestamp()>=$now->getTimestamp()+3600&&!pz_booking_conflict($s->format('Y-m-d H:i:s'),$rows);
             $slots[]=array('date'=>$s->format('Y-m-d H:i:s'),'start'=>$s->format('H:i'),'end'=>$s->modify('+180 minutes')->format('H:i'),'available'=>(bool)$available);
         }
+        $full=count($busy)>=3;
+        // Expose only configured public windows, never staff-only appointment hours.
+        $publicBusy=array();
+        foreach($slots as $slot){
+            $start=new DateTimeImmutable($slot['date'],$zone);$end=$start->modify('+180 minutes');
+            foreach($rows as $v){$other=new DateTimeImmutable($v['visit_date'],$zone);
+                if($other<$end&&$other->modify('+180 minutes')>$start){$publicBusy[]=array('start'=>$slot['start'],'end'=>$slot['end']);break;}
+            }
+        }
+        $busy=$publicBusy;
         // Only times and availability; never identifiers, names, emails, notes or dog data.
-        $days[]=array('date'=>$day,'slots'=>$slots,'busy'=>$busy,'closed'=>!$window,'full'=>count($busy)>=3);
+        $days[]=array('date'=>$day,'slots'=>$slots,'busy'=>$busy,'closed'=>!$window,'full'=>$full);
     }
     return $days;
 }
@@ -97,6 +111,7 @@ function pz_booking_block_save($input,$c=null,$now=null) {
     foreach($dates as $date){
         $date=pz_date($date,true);$iso=substr($date,0,10);
         if($day!==null&&$day!==$iso)throw new InvalidArgumentException('Wybierz okienka z jednego dnia.');$day=$iso;
+        if(($input['manual']??false)===true){pz_booking_staff_assert($date,0,$c,$now);continue;}
         $available=pz_booking_calendar($iso,$c,$now)[0]['slots'];
         $found=false;foreach($available as $slot)if($slot['date']===$date&&$slot['available'])$found=true;
         if(!$found)throw new InvalidArgumentException('Okienko jest już zajęte lub niedostępne. Odśwież terminarz.');
@@ -104,7 +119,7 @@ function pz_booking_block_save($input,$c=null,$now=null) {
     $group=pz_text($input,'requestKey',64,true);
     if(!preg_match('/^[a-zA-Z0-9-]{16,64}$/D',$group))throw new InvalidArgumentException('Nieprawidłowy identyfikator.');
     foreach($dates as $date){
-        pz_booking_assert($date,0,true,$c,$now);
+        if(($input['manual']??false)===true)pz_booking_staff_assert($date,0,$c,$now);else pz_booking_assert($date,0,true,$c,$now);
         $key=$group.'-'.str_replace(array('-',' ',':','T'),'',$date);
         pz_put('calendar_block',$key,array('id'=>$key,'date'=>pz_date($date,true),'active'=>true,'userId'=>(int)$user->id,'by'=>(string)(trim(($user->firstname??'').' '.($user->lastname??''))?:$user->login)));
     }

@@ -147,15 +147,16 @@ function earliestReservation(){
  const parts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Warsaw',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(d).map(p=>[p.type,p.value]));
  return parts.year+'-'+parts.month+'-'+parts.day+'T'+parts.hour+':'+parts.minute;
 }
-function reservationField(value){return field('date','Termin (czas polski)',value,'datetime-local','required min="'+earliestReservation()+'"')+'<p class="muted">Rezerwacja najwcześniej za godzinę.</p>';}
+function reservationField(value){return field('date','Termin (czas polski)',value,'datetime-local','required min="'+earliestReservation()+'"')+'<p class="muted">W panelu możesz wpisać godzinę poza okienkami portalu. Wizyta trwa 3 godziny; minimum godzinę do przodu.</p>';}
 async function blockForm(from=today()){
  if(!canWrite())return;
  const result=await api('blockslots',undefined,{from}),slots=result.day.slots.filter(s=>s.available),key=crypto.randomUUID();
- modal('Zablokuj terminy',field('blockDay','Dzień',from,'date','required min="'+today()+'"')+'<p class="muted">Zaznacz okienka po 3 godziny. Będą niedostępne dla klientów.</p>'+slots.map((s,i)=>'<label class="payment-check"><input type="checkbox" name="block_'+i+'"> '+esc(s.start)+'–'+esc(s.end)+'</label>').join('')+(slots.length?'':'<p>Brak wolnych okienek w tym dniu.</p>'),slots.length?async()=>{
-  const dates=slots.filter((s,i)=>$('modalFields').querySelector('[name="block_'+i+'"]').checked).map(s=>s.date);
+ modal('Zablokuj terminy',field('blockDay','Dzień',from,'date','required min="'+today()+'"')+field('manualBlock','Albo wpisz własną godzinę (blokada 3 godziny)','','time')+'<p class="muted">Zaznacz okienka albo wpisz własną godzinę. Własna godzina zastępuje zaznaczone okienka. Każda blokada trwa 3 godziny.</p>'+slots.map((s,i)=>'<label class="payment-check"><input type="checkbox" name="block_'+i+'"> '+esc(s.start)+'–'+esc(s.end)+'</label>').join('')+(slots.length?'':'<p>Brak wolnych okienek w tym dniu.</p>'),async()=>{
+  const manual=$('f_manualBlock').value;
+  const dates=manual?[from+' '+manual+':00']: slots.filter((s,i)=>$('modalFields').querySelector('[name="block_'+i+'"]').checked).map(s=>s.date);
   if(!dates.length)throw new Error('Zaznacz co najmniej jedno okienko.');
-  await api('block',{dates,requestKey:key});await refresh();message('Wybrane terminy zostały zablokowane.');
- }:null);
+  await api('block',{dates,manual:!!manual,requestKey:key});await refresh();message('Wybrane terminy zostały zablokowane.');
+ });
  $('f_blockDay').addEventListener('change',async e=>{const day=e.target.value;if(!day)return;try{await blockForm(day);}catch(err){$('modalError').textContent=err.message;}});
 }
 let findingAppointment=false;

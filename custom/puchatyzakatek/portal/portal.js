@@ -93,7 +93,6 @@
         const action = node('span', undefined, 'slot-action'); action.append(node('span', label), node('b', slot.available ? '↗' : '—')); b.append(action);
         b.addEventListener('click', () => choose(slot.date)); card.append(b);
       }
-      for (const occupied of day.busy) if (!day.slots.some(s => s.start === occupied.start && s.end === occupied.end)) card.append(node('p', `${occupied.start}–${occupied.end} · Zajęte`, 'busy-extra'));
       $('calendar').append(card);
     }
     selectDay(activeDay); controls();

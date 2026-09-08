@@ -99,13 +99,13 @@ try {
         $result=pz_booking_block_save($data);pz_put('block_request',$key,$result);break;
     case 'unblock': $result=pz_booking_block_release($data);break;
     case 'plan':
-        $dog=pz_dog($data['dogId']??0); $date=pz_booking_assert($data['date']??'');
+        $dog=pz_dog($data['dogId']??0); $date=pz_booking_staff_assert($data['date']??'');
         pz_query('INSERT INTO '.MAIN_DB_PREFIX.'pz_visit (fk_soc,fk_dog,visit_date,status,notes,datec) VALUES ('.(int)$dog['fk_soc'].','.(int)$dog['rowid'].','.pz_q($date).",'planned',".pz_q(pz_text($data,'notes',5000)).',NOW())');
         $result=array('id'=>(int)$db->last_insert_id(MAIN_DB_PREFIX.'pz_visit')); break;
     case 'reschedule':
         $v=pz_visit($data['id']??0);
         if ($v['status']!=='planned') throw new InvalidArgumentException('Można edytować tylko planowaną wizytę.');
-        $date=pz_booking_assert($data['date']??'',(int)$v['rowid']);
+        $date=pz_booking_staff_assert($data['date']??'',(int)$v['rowid']);
         pz_query('UPDATE '.MAIN_DB_PREFIX.'pz_visit SET visit_date='.pz_q($date).',notes='.pz_q(pz_text($data,'notes',5000)).' WHERE rowid='.(int)$v['rowid']." AND status='planned'");
         $result=array('ok'=>true); break;
     case 'cancel':
