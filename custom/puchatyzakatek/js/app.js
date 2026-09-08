@@ -148,18 +148,25 @@ function earliestReservation(){
  return parts.year+'-'+parts.month+'-'+parts.day+'T'+parts.hour+':'+parts.minute;
 }
 function reservationField(value){return field('date','Termin (czas polski)',value,'datetime-local','required min="'+earliestReservation()+'"')+'<p class="muted">Rezerwacja najwcześniej za godzinę.</p>';}
-function planForm(selectedDate){
+let findingAppointment=false;
+async function planForm(selectedDate){
   if(!canWrite()){message('Brak uprawnień do dodawania wizyt.',true);return;}
-  const draft={clientId:Number(activeClient?.id||data.clients[0]?.id||0),dogId:0,date:(selectedDate||$('calendarDate').value||today())+'T09:00',notes:''};
-  if(draft.date<earliestReservation())draft.date=earliestReservation();
-  planDraftForm(draft);
+  if(findingAppointment)return;
+  findingAppointment=true;
+  try{
+    message('Szukam najbliższego wolnego terminu…');
+    const next=await api('nextappointment',undefined,{from:selectedDate||''});
+    const draft={clientId:Number(activeClient?.id||data.clients[0]?.id||0),dogId:0,date:next.date?next.date.replace(' ','T').slice(0,16):'',notes:'',availabilityNotice:next.message};
+    planDraftForm(draft);
+    message(next.message,!next.date);
+  }finally{findingAppointment=false;}
 }
 function planDraftForm(draft){
   const dogs=data.dogs.filter(d=>Number(d.clientId)===Number(draft.clientId));
   if(!dogs.some(d=>Number(d.id)===Number(draft.dogId)))draft.dogId=Number(dogs[0]?.id||0);
   const clients=[[0,'Wybierz klienta'],...data.clients.map(c=>[c.id,c.name]),['__new_client','+ Dodaj klienta']];
   const choices=[[0,'Wybierz psa'],...dogs.map(d=>[d.id,d.name]),['__new_dog','+ Dodaj psa']];
-  modal('Nowa wizyta',selectField('clientId','Klient',clients,draft.clientId)+selectField('dogId','Pies tego klienta',choices,draft.dogId)+reservationField(draft.date)+noteField('notes','Uwagi',draft.notes),async values=>{
+  modal('Nowa wizyta',selectField('clientId','Klient',clients,draft.clientId)+selectField('dogId','Pies tego klienta',choices,draft.dogId)+reservationField(draft.date)+(draft.availabilityNotice?'<p class="muted">'+esc(draft.availabilityNotice)+'</p>':'')+noteField('notes','Uwagi',draft.notes),async values=>{
     const dog=data.dogs.find(d=>Number(d.id)===Number(values.dogId)&&Number(d.clientId)===Number(values.clientId));
     if(!dog)throw new Error('Wybierz klienta i jego psa albo dodaj ich z listy.');
     await api('plan',{dogId:dog.id,date:values.date,notes:values.notes});await refresh();message('Termin zapisany.');
@@ -239,7 +246,7 @@ document.addEventListener('click',async event=>{
     if(b.dataset.service)addToCart(b.dataset.service);
     if(b.dataset.remove!==undefined){cart.splice(Number(b.dataset.remove),1);requestKey=crypto.randomUUID();renderCart();}
     if(b.dataset.editVisit)editVisit(Number(b.dataset.editVisit));
-    if(b.dataset.planDate)planForm(b.dataset.planDate);
+    if(b.dataset.planDate)await planForm(b.dataset.planDate);
     if(b.dataset.calendarShift)shiftCalendar(Number(b.dataset.calendarShift));
     if(b.dataset.editDog)dogForm(b.dataset.editDog);
     if(b.dataset.pay){payment=b.dataset.pay;document.querySelectorAll('.pay').forEach(x=>x.classList.toggle('active',x===b));}
@@ -249,7 +256,7 @@ document.addEventListener('click',async event=>{
     if(b.dataset.paid){const id=Number(b.dataset.paid);modal('Zarejestruj otrzymaną wpłatę',field('date','Data otrzymania',today(),'date','required'),async values=>{await api('paid',{id,...values});await refresh();message('Wpłata zarejestrowana.');});}
     const action=b.dataset.action;
     if(action==='calendar-today'){$('calendarDate').value=today();salonCalendarDay=today();renderCalendar();}
-    if(action==='dog')dogForm();if(action==='plan')planForm();if(action==='expense')expenseForm();
+    if(action==='dog')dogForm();if(action==='plan')await planForm();if(action==='expense')expenseForm();
     if(action==='client')clientForm();
     if(b.dataset.editClient)clientForm(Number(b.dataset.editClient));
     if(action==='close-modal'){if($('modalSave').disabled)return;if(modalBack)modalBack();else $('pzModal').close();}

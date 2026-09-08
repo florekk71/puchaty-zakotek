@@ -1,6 +1,29 @@
 <?php
 require_once __DIR__.'/reservation.lib.php';
 require_once __DIR__.'/portal-config.lib.php';
+function pz_booking_next($from='', $c=null, $now=null) {
+    $c=$c??pz_portal_config();
+    $zone=new DateTimeZone('Europe/Warsaw');
+    $now=($now??new DateTimeImmutable('now',$zone))->setTimezone($zone);
+    pz_booking_hours_validate($c);
+    $today=$now->setTime(0,0);
+    $day=$from===''?$today:DateTimeImmutable::createFromFormat('!Y-m-d',$from,$zone);
+    if (!$day || ($from!=='' && $day->format('Y-m-d')!==$from)) throw new InvalidArgumentException('Nieprawidłowa data.');
+    if ($day<$today) $day=$today;
+    $last=$today->modify('+'.(int)($c['calendar']['days_ahead']??90).' days');
+    if ($day>$last) return array('date'=>null,'message'=>'Wybrany dzień jest poza zakresem rezerwacji.');
+    $rows=pz_booking_rows($day->modify('-1 day')->format('Y-m-d H:i:s'),$last->modify('+1 day')->format('Y-m-d H:i:s'));
+    for (;$day<=$last;$day=$day->modify('+1 day')) {
+        $window=pz_booking_window($day->format('Y-m-d'),$c);
+        if (!$window) continue;
+        for ($slot=$window[0];$slot->modify('+180 minutes')<=$window[1];$slot=$slot->modify('+180 minutes')) {
+            if ($slot->getTimestamp()<$now->getTimestamp()+3600) continue;
+            $date=$slot->format('Y-m-d H:i:s');
+            if (!pz_booking_conflict($date,$rows)) return array('date'=>$date,'message'=>'Wybrano najbliższy wolny termin. Dostępność zostanie ponownie sprawdzona przy zapisie.');
+        }
+    }
+    return array('date'=>null,'message'=>'Brak wolnych terminów w godzinach pracy w zakresie rezerwacji. Sprawdź grafik i konfigurację godzin pracy salonu.');
+}
 function pz_booking_window($day,$c) {
     $d=DateTimeImmutable::createFromFormat('!Y-m-d',$day,new DateTimeZone('Europe/Warsaw'));
     if(!$d||$d->format('Y-m-d')!==$day)throw new InvalidArgumentException('Nieprawidłowy dzień.');

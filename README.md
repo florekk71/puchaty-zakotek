@@ -165,3 +165,7 @@ Testy logiki i izolacji danych: `php tests/portal.php` (pdo_sqlite, mbstring), b
 ### Wygląd panelu salonu
 
 Panel pracowników używa kolorystyki i typografii portalu klienta: spokojna zieleń, kremowe tło, pastelowe statusy i wspólna stylistyka przycisków, formularzy, list oraz POS. Terminarz pokazuje daty i godziny w nowym układzie; na telefonie można przełączać dni tygodnia. Rozliczanie, edycja i odwoływanie nadal korzystają z dotychczasowych operacji i uprawnień. Filtry Od / Do znajdują się w rozwijanej historii wizyt. Nowy arkusz `css/admin-portal.css` jest ładowany tylko na ekranie, więc nie zmienia wydruku 80 mm. Po pobraniu aktualizacji odśwież panel Ctrl+F5.
+
+### Najbliższy wolny termin w panelu
+
+„Nowa wizyta” automatycznie podpowiada pierwszy wolny trzygodzinny przedział zgodny z kalendarzem portalu. Dodawanie z kafelka dnia szuka od wybranego dnia. Wyszukiwanie uwzględnia wszystkie wizyty salonu, limit 3 psów dziennie, godzinę wyprzedzenia, godziny pracy i dni wolne z konfiguracji `portal-config.ini` oraz `days_ahead`. Brak godzin pracy lub wolnych miejsc pozostawia pole terminu puste z komunikatem. Samo wyszukanie nie rezerwuje miejsca; zapis ponownie sprawdza dostępność.

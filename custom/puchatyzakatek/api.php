@@ -36,6 +36,10 @@ try {
     if ($action==='mailstatus' && !$write) pz_reply(pz_mail_status());
     if ($action==='commerce' && !$write) pz_reply(pz_commerce_data());
     if ($action==='ndg' && !$write) pz_reply(pz_ndg_data(GETPOSTINT('year') ?: (int)date('Y')));
+    if ($action==='nextappointment' && !$write) {
+        if (!pz_can_write()) pz_reply(array('error'=>'Brak uprawnień do dodawania wizyt.'),403);
+        pz_reply(pz_booking_next((string)GETPOST('from','alphanohtml')));
+    }
     if ($action==='data' && !$write) pz_reply(pz_data());
     if ($action==='receipt' && !$write) {
         $v=pz_visit(GETPOSTINT('id'));
