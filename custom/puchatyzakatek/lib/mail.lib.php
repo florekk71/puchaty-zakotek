@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__.'/mail-template.lib.php';
+require_once __DIR__.'/mail-mime.lib.php';
 // SMTP secrets are mounted outside the web root. No secret values are returned by the API.
 function pz_mail_config() {
     $path=getenv('PZ_MAIL_CONFIG') ?: '/run/secrets/pz-mail.ini';
@@ -121,12 +122,21 @@ function pz_mail_send($c,$payload){
         foreach($values as $k=>$v)$conf->global->{$k.'_PZ'}=$v;
         $file=$payload['file']??null;
         $html=$payload['html']??pz_mail_template('test',array(),$c);
-        $conf->global->MAIN_MAIL_ADD_INLINE_IMAGES_IF_DATA=1;
+        $conf->global->MAIN_MAIL_ADD_INLINE_IMAGES_IF_DATA=0;
         $conf->global->MAIN_MAIL_ADD_INLINE_IMAGES_IF_IN_MEDIAS=0;
         $conf->global->MAIN_MAIL_FORCE_CONTENT_TYPE_TO_HTML=0;
-        $tmp=DOL_DATA_ROOT.'/puchatyzakatek/'.pz_entity().'/mail-images';
-        if(!is_dir($tmp)&&!mkdir($tmp,0770,true)&&!is_dir($tmp))throw new RuntimeException('Nie mozna przygotowac logo wiadomosci.');
-        $mail=new CMailFile($payload['subject'],$payload['to'],($c['sender']['name']??'Puchaty Zakątek').' <'.$c['sender']['address'].'>',$html,$file?array($file['path']):array(),$file?array('application/pdf'):array(),$file?array($file['name']):array(),'','',0,1,'','','','','pz',($c['sender']['reply_to']??'')?:$c['sender']['address'],$tmp);
+        $conf->global->MAIN_MAIL_USE_MULTI_PART=1;
+        $mime=pz_mail_mime($html,$payload['body']??'', $file);
+        // CMailFile still configures the verified SMTP transport and authentication.
+        $mail=new CMailFile($payload['subject'],$payload['to'],($c['sender']['name']??'Puchaty Zakątek').' <'.$c['sender']['address'].'>',$payload['body']??'',array(),array(),array(),'','',0,0,'','','','','pz',($c['sender']['reply_to']??'')?:$c['sender']['address']);
+        if(!is_object($mail->smtps))throw new RuntimeException('Nie przygotowano transportu SMTP.');
+        require_once __DIR__.'/mail-smtp.class.php';
+        $original=$mail->smtps;$smtp=new PzMimeSMTP();
+        $smtp->setCharSet('UTF-8');$smtp->setSubject($original->getSubject());
+        $smtp->setTO($original->getTO());$smtp->setFrom($original->getFrom('org'));
+        $smtp->setReplyTo(($c['sender']['reply_to']??'')?:$c['sender']['address']);
+        $smtp->setOptions(array('ssl'=>array('verify_peer'=>true,'verify_peer_name'=>true,'allow_self_signed'=>false)));
+        $smtp->pzMime=$mime;pz_mail_check_lines($smtp->getHeader().$mime);$mail->smtps=$smtp;
         if(is_object($mail->smtps))$mail->smtps->setSMTPTimeout(max(5,min(60,(int)($c['smtp']['timeout_seconds']??20)))); if(!$mail->sendfile())throw new RuntimeException('SMTP nie potwierdzil wyslania. Sprawdz ustawienia i skrzynke odbiorcy przed ponowieniem.');
     }finally{$conf->global=$saved;}
 }

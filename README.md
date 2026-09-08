@@ -139,3 +139,15 @@ Po aktualizacji wykonaj polecenie `mail-worker.php test`, aby sprawdzić wygląd
 W **Ustawienia → E-mail właściciela salonu** (także **NDG i raporty → Poczta i kolejka**) wpisz adres właściciela i włącz wybrane zdarzenia: nową rezerwację, zmianę terminu i odwołanie. Ustawienia są przechowywane w bazie danej jednostki; może je zmieniać osoba z prawem pełnej obsługi modułu.
 
 Wymagają aktywnego SMTP (`delivery.enabled = true`) i harmonogramu wysyłki. Nie wymagają włączonych wiadomości do klientów ani adresu e-mail klienta. Są to oddzielne wiadomości, bez CC/BCC, z własnym wpisem w kolejce i deduplikacją. Zawierają klienta, psa i termin oraz szablon przeznaczony dla salonu. Zmiana adresu właściciela powoduje pominięcie oczekujących wiadomości zaadresowanych do poprzedniego właściciela. Ustawienia dotyczą nowych zdarzeń; nie tworzą zbiorczej wysyłki historycznych wizyt.
+
+### Diagnostyka błędu Exim „line too long”
+
+Moduł przygotowuje teraz własne części MIME: tekst i HTML są kodowane base64 z podziałem na 76 znaków, logo jest częścią inline CID, a PDF osobnym załącznikiem. Transport SMTP Dolibarra nadal obsługuje uwierzytelnianie i TLS, ale nie składa treści przez starszy mechanizm surowego HTML/8bit. Przed połączeniem sprawdzany jest limit długości linii nagłówków i treści. Nie trzeba modyfikować plików rdzenia Dolibarra.
+
+Po aktualizacji sprawdź format bez wysyłania wiadomości:
+
+```bash
+docker exec puchaty-dolibarr php /var/www/html/custom/puchatyzakatek/scripts/check-mail-format.php
+```
+
+Następnie możesz wykonać `mail-worker.php test` do skonfigurowanego `test_recipient`. Nie ponawiaj masowo wiadomości oznaczonych „Do sprawdzenia” bez sprawdzenia logów SMTP i skrzynki odbiorcy. Lokalne zmiany `mail.lib.php` na serwerze wymagają porównania przed aktualizacją z Gita.
