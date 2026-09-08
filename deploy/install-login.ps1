@@ -1,7 +1,21 @@
 param([string]$ProjectRoot=(Split-Path $PSScriptRoot),[string]$Container='puchaty-dolibarr')
 $ErrorActionPreference='Stop'
 $OutputEncoding=[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false)
-function Run-Docker {param([string[]]$DockerArgs) $output=& docker @DockerArgs 2>&1;if($LASTEXITCODE -ne 0){throw ($output -join "`n")};return ($output -join "`n")}
+function Run-Docker {
+ param([string[]]$DockerArgs)
+ $dockerCommand=Get-Command docker -CommandType Application -ErrorAction Stop | Select-Object -First 1
+ $savedPreference=$ErrorActionPreference
+ try {
+  # Docker Compose writes progress to stderr even when the command succeeds.
+  # Windows PowerShell 5.1 must not throw before LASTEXITCODE is captured.
+  $ErrorActionPreference='Continue'
+  $PSNativeCommandUseErrorActionPreference=$false
+  $output=& $dockerCommand.Source @DockerArgs 2>&1
+  $exitCode=$LASTEXITCODE
+ } finally { $ErrorActionPreference=$savedPreference }
+ if($exitCode -ne 0){throw ("Docker zakonczyl polecenie bledem (kod {0}): {1}" -f $exitCode,($output -join "`n"))}
+ return ($output -join "`n")
+}
 $root=(Resolve-Path -LiteralPath $ProjectRoot).Path
 $compose=@('compose.yml','docker-compose.yml')|ForEach-Object {Join-Path $root $_}|Where-Object {Test-Path -LiteralPath $_}|Select-Object -First 1
 if(!$compose){throw 'Nie znaleziono pliku Compose.'}
@@ -24,6 +38,7 @@ $existed=Test-Path -LiteralPath $target
 if($existed){Copy-Item -LiteralPath $target -Destination (Join-Path $backup 'login.mount.original')}
 $changed=$false
 try {
+ Run-Docker -DockerArgs @('compose','-f',$compose,'up','-d','dolibarr')|Write-Host
  Run-Docker -DockerArgs @('cp',($Container+':/var/www/html/core/tpl/login.tpl.php'),(Join-Path $backup 'login.tpl.php'))|Out-Null
  Run-Docker -DockerArgs @('cp',(Join-Path $PSScriptRoot 'patch-login.php'),($Container+':'+$remote+'.php'))|Out-Null
  Run-Docker -DockerArgs @('exec',$Container,'php',($remote+'.php'),'/var/www/html/core/tpl/login.tpl.php',($remote+'.tpl.php'))|Out-Null
@@ -38,3 +53,4 @@ try {
  if($changed){Copy-Item -LiteralPath (Join-Path $backup 'compose.original') -Destination $compose -Force;if($existed){Copy-Item -LiteralPath (Join-Path $backup 'login.mount.original') -Destination $target -Force};try{Run-Docker -DockerArgs @('compose','-f',$compose,'up','-d','--no-deps','--force-recreate','dolibarr')|Out-Null}catch{Write-Warning 'Sprawdz uruchomienie kontenera po przywroceniu Compose.'}}
  throw
 }
+
