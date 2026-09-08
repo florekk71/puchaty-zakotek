@@ -251,10 +251,10 @@ $pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>
       <small>SPA DLA PSÓW • STRZYŻENIE & MYCIE</small>
     </div>
     <div class="nav">
+      <button data-view="calendar"><span class="ico">📅</span>Terminarz</button>
       <button class="active" data-view="pos"><span class="ico">🛒</span>POS</button>
       <button data-view="documents"><span class="ico">📄</span>Dokumenty</button><button data-view="catalog"><span class="ico">📦</span>Magazyn</button><button data-view="business"><span class="ico">📊</span>NDG i raporty</button><button data-view="clients"><span class="ico">👤</span>Klienci</button>
       <button data-view="dogs"><span class="ico">🐶</span>Psy</button>
-      <button data-view="calendar"><span class="ico">📅</span>Terminarz</button>
       <button data-view="costs"><span class="ico">💸</span>Koszty</button>
       <button data-view="accounting"><span class="ico">🧾</span>Rozliczenia wizyt</button>
       <button data-view="reports"><span class="ico">📊</span>Raporty wizyt</button>
