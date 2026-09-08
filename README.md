@@ -72,3 +72,9 @@ Faktury w tym profilu dotyczą konsumentów i sprzedaży zwolnionej z VAT na pod
 Kod eksportowano z wersji zgodnej z bieżącą instalacją 0.5.5. Usunięto domyślny adres sprzedawcy. Nowy szablon wdrożenia przygotowano na podstawie [oficjalnej dokumentacji obrazu Dolibarra](https://github.com/Dolibarr/dolibarr-docker). Składnia kodu i mechanizm wstawiania ochrony tras zostały sprawdzone lokalnie; pełna budowa i pierwsze uruchomienie tej konfiguracji Docker na nowym serwerze wymagają weryfikacji.
 
 Kod Dolibarra i MariaDB jest pobierany z obrazów upstream i podlega ich własnym licencjom. Logo jest oznaczeniem salonu Puchaty Zakątek.
+
+## Konfiguracja poczty — szablon
+
+Skopiuj `deploy/mail-config.example.ini` jako `mail-config.ini` do głównego katalogu instalacji (np. `C:\PuchatyZakatek`), poza katalogiem `custom`. Uzupełnij SMTP oraz adres nadawcy według danych dostawcy poczty. Nie publikuj uzupełnionego pliku: zawiera hasło. Repozytorium i kontekst budowy obrazu ignorują plik `mail-config.ini`.
+
+Szablon nie uruchamia wysyłki. Obsługa SMTP, wysyłanie zdarzeń i harmonogram przypomnień wymagają osobnego wdrożenia; pozostaw `enabled = false` do jego zakończenia i testu. Przełączniki wiadomości określają planowaną konfigurację tych funkcji.
