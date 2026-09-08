@@ -6,6 +6,7 @@ require_once __DIR__.'/lib/client.lib.php';
 require_once __DIR__.'/lib/commerce.lib.php';
 require_once __DIR__.'/lib/ndg.lib.php';
 require_once __DIR__.'/lib/backup.lib.php';
+require_once __DIR__.'/lib/mail.lib.php';
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 function pz_reply($data,$code=200) { $data['_token']=(string)($_SESSION['newtoken']??''); http_response_code($code); echo json_encode($data,JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_INVALID_UTF8_SUBSTITUTE); exit; }
@@ -31,6 +32,7 @@ try {
         pz_reply(array('state'=>$saved===null?'absent':'unknown'));
     }
     if ($action==='backupscript' && !$write) pz_reply(pz_backup_script(GETPOSTINT('restore')===1));
+    if ($action==='mailstatus' && !$write) pz_reply(pz_mail_status());
     if ($action==='commerce' && !$write) pz_reply(pz_commerce_data());
     if ($action==='ndg' && !$write) pz_reply(pz_ndg_data(GETPOSTINT('year') ?: (int)date('Y')));
     if ($action==='data' && !$write) pz_reply(pz_data());
@@ -47,6 +49,7 @@ try {
     if ($db->begin()<=0) throw new RuntimeException('Nie udało się rozpocząć transakcji.');
     pz_commerce_lock();
     switch ($action) {
+    case 'mailretry': $result=pz_mail_retry((string)($data['id']??''));break;
     case 'catalog': $result=pz_catalog_save($data);break;
     case 'unit': $result=pz_unit_save($data);break;
     case 'document': $result=pz_document_save($data);break;
@@ -113,6 +116,7 @@ try {
         pz_put('config','main',$cfg);$result=array('ok'=>true);break;
     default: throw new InvalidArgumentException('Nieznana operacja.');
     }
+    pz_mail_capture($action,$data,$result);
     if ($db->commit()<=0) throw new RuntimeException('Nie udało się zatwierdzić zapisu.');
     pz_reply($result);
 } catch (Throwable $e) {

@@ -73,8 +73,35 @@ Kod eksportowano z wersji zgodnej z bieżącą instalacją 0.5.5. Usunięto domy
 
 Kod Dolibarra i MariaDB jest pobierany z obrazów upstream i podlega ich własnym licencjom. Logo jest oznaczeniem salonu Puchaty Zakątek.
 
-## Konfiguracja poczty — szablon
+## Wysyłka e-mail
 
-Skopiuj `deploy/mail-config.example.ini` jako `mail-config.ini` do głównego katalogu instalacji (np. `C:\PuchatyZakatek`), poza katalogiem `custom`. Uzupełnij SMTP oraz adres nadawcy według danych dostawcy poczty. Nie publikuj uzupełnionego pliku: zawiera hasło. Repozytorium i kontekst budowy obrazu ignorują plik `mail-config.ini`.
+Moduł kolejkuje potwierdzenie rezerwacji, zmianę terminu, odwołanie oraz fakturę PDF po potwierdzeniu wpłaty. Przypomnienia dotyczą przyszłych planowanych wizyt w przedziale `hours_before` (domyślnie 24 godziny); nie tworzą rezerwacji. Wymagany jest e-mail klienta. Faktura korzysta z adresu nabywcy utrwalonego podczas jej wystawienia. Brak adresu jest oznaczany w kolejce jako pominięcie, bez blokowania sprzedaży.
 
-Szablon nie uruchamia wysyłki. Obsługa SMTP, wysyłanie zdarzeń i harmonogram przypomnień wymagają osobnego wdrożenia; pozostaw `enabled = false` do jego zakończenia i testu. Przełączniki wiadomości określają planowaną konfigurację tych funkcji.
+1. Zaktualizuj moduł. Skopiuj `deploy/mail-config.example.ini` jako `mail-config.ini` do głównego katalogu instalacji, poza `custom`. Uzupełnij SMTP, nadawcę i `test_recipient`; pozostaw `delivery.enabled = false`. Plik zawiera hasło i jest wykluczony z Gita oraz obrazu Docker.
+2. W Windows uruchom z folderu repozytorium:
+
+   ```powershell
+   .\deploy\install-mail.ps1 -ProjectRoot "C:\PuchatyZakatek"
+   docker exec puchaty-dolibarr php /var/www/html/custom/puchatyzakatek/scripts/mail-worker.php check
+   docker exec puchaty-dolibarr php /var/www/html/custom/puchatyzakatek/scripts/mail-worker.php test
+   ```
+
+   `test` wysyła jedną wiadomość wyłącznie do `test_recipient`, także gdy automatyczna wysyłka jest wyłączona. Installer nie wysyła testu samodzielnie.
+3. Po otrzymaniu testu ustaw `delivery.enabled = true` i wybrane przełączniki w `[messages]` na `true`. Uruchom ponownie instalator, aby Docker odczytał zmieniony plik. Istniejący plik z hasłem nie jest nadpisywany. Zmiany nie są zapisywane do globalnych ustawień SMTP Dolibarra.
+4. Zajrzyj do **NDG i raporty → Poczta i kolejka**. Kolejka pokazuje ostatnie 100 pozycji. Nie wysyła historycznych faktur i potwierdzeń po samym uruchomieniu; nowe operacje przy włączonej konfiguracji tworzą wpisy. Przypomnienia obejmują również istniejące, nadchodzące wizyty.
+
+Harmonogram Windows działa co minutę jako bieżący użytkownik, gdy jest zalogowany, komputer jest włączony i Docker działa. Ostatni wynik jest w `pz-mail-worker.log` w katalogu instalacji. Wyłączenie komputera lub wylogowanie zatrzymuje wysyłkę. Instalator tworzy zadanie `Puchaty-poczta-puchaty-dolibarr`.
+
+Na serwerze Linux dodaj do wolumenów usługi `dolibarr` montowanie `./mail-config.ini:/run/secrets/pz-mail.ini:ro`, odtwórz kontener i ustaw w crontab użytkownika z dostępem do Dockera:
+
+```cron
+* * * * * /usr/bin/docker exec puchaty-dolibarr php /var/www/html/custom/puchatyzakatek/scripts/mail-worker.php run
+```
+
+Weryfikacja TLS jest wymagana. Hasło aplikacji wpisz, jeśli wymaga go dostawca. Implementacja obsługuje SMTP LOGIN, STARTTLS i TLS, nie OAuth2.
+
+Po niepotwierdzonym wyniku SMTP pozycja ma stan **Do sprawdzenia**. SMTP nie zapewnia dokładnie jednokrotnego doręczenia: przed ręcznym ponowieniem sprawdź, czy wiadomość dotarła. System nie ponawia niepewnej wysyłki samoczynnie. Blokada bazy uniemożliwia równoległą pracę dwóch procesów w tej samej jednostce; przerwany proces pozostawia pozycję do sprawdzenia. Sukces oznacza przyjęcie przez serwer SMTP, nie gwarantuje umieszczenia w skrzynce zamiast spamu.
+
+Dane SMTP są czytane z `/run/secrets/pz-mail.ini` (alternatywnie ścieżka `PZ_MAIL_CONFIG`). Obsługiwana jest bieżąca jednostka Dolibarra; standardowa instalacja używa jednostki 1. Kolejka znajduje się w istniejącej tabeli modułu `pz_store`, więc nie wymaga migracji tabel. Kod PDF jest wspólny dla podglądu i załącznika. Wydruk 80 mm pozostaje odrębny.
+
+Testy lokalne obejmują kolejkę i transport zastępczy. Test z prawdziwą skrzynką wymaga uzupełnienia prywatnej konfiguracji na docelowym serwerze.
