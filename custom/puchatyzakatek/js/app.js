@@ -85,7 +85,7 @@ function showView(id){
   document.querySelectorAll('.nav button').forEach(e=>{e.classList.toggle('active',e.dataset.view===id);if(e.dataset.view===id)$('pageTitle').textContent=e.textContent.trim();});
 }
 function table(headers,rows){return `<div class="table-scroll"><table class="table"><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.join('')||`<tr><td colspan="${headers.length}">Brak danych.</td></tr>`}</tbody></table></div>`;}
-function row(values){return '<tr>'+values.map(x=>'<td>'+x+'</td>').join('')+'</tr>';}
+function row(values){return '<tr>'+values.map(x=>/^\s*<button\b/.test(String(x))?'<td class="table-actions"><div class="row-actions">'+x+'</div></td>':'<td>'+x+'</td>').join('')+'</tr>';}
 function renderClients(){
   const filter=($('clientListSearch')?.value||'').toLowerCase();
   $('clientList').innerHTML=table(['Klient','Telefon','E-mail','Psy','Kartoteka'],data.clients.filter(c=>(c.name+' '+c.phone+' '+c.email).toLowerCase().includes(filter)).map(c=>row([esc(c.name),esc(c.phone),esc(c.email),esc(data.dogs.filter(d=>Number(d.clientId)===Number(c.id)).map(d=>d.name).join(', ')),`<button class="btn ghost" data-edit-client="${Number(c.id)}">${canWrite()?'Otwórz / edytuj klienta':'Otwórz'}</button> ${archiveButton('client',c.id)} <button type="button" class="btn ghost" data-commerce="clientreport" data-id="${Number(c.id)}">Obrót / raport</button>`])));
@@ -105,7 +105,7 @@ function renderVisits(){
   ])));
 }
 function renderExpenses(){
-  $('expenseList').innerHTML=table(['Data','Dokument','Dostawca','Kategoria','Opis','Kwota'],data.expenses.map(e=>row([esc(e.expense_date),esc(e.document_no),esc(e.supplier),esc(e.category),esc(e.description),money(Math.round(Number(e.amount_gross)*100))])));
+  $('expenseList').innerHTML=table(['Data','Dokument','Dostawca','Kategoria','Opis','Kwota','Akcje'],data.expenses.map(e=>row([esc(e.expense_date),esc(e.document_no),esc(e.supplier),esc(e.category),esc(e.description),money(Math.round(Number(e.amount_gross)*100)),'<div class="row-actions expense-actions"></div>'])));
 }
 function period(){return {from:$('reportFrom').value,to:$('reportTo').value};}
 function reportData(){const p=period(),inside=d=>(!p.from||d>=p.from)&&(!p.to||d<=p.to);return {visits:data.visits.filter(v=>v.status==='completed'&&inside(v.paymentState.completedDate||v.visit_date.slice(0,10))),received:data.visits.filter(v=>v.status==='completed'&&v.paymentState.received&&v.paymentState.date&&inside(v.paymentState.date)),expenses:data.expenses.filter(e=>inside(e.expense_date))};}

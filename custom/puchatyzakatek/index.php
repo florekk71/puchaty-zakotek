@@ -256,7 +256,7 @@ $pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>
 .calendar-legend{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px;font-size:12px;align-items:center}
 .calendar-legend .calendar-empty{padding:5px 9px;margin:6px 0 2px}
 </style>
-<link rel="stylesheet" href="css/admin-portal.css?v=2" media="screen">
+<link rel="stylesheet" href="css/admin-portal.css?v=3" media="screen">
 </head>
 <body>
 <div class="app">
@@ -428,6 +428,6 @@ $pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>
 </div>
 
 <script type="application/json" id="pzBoot"><?php echo json_encode($pzBoot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE); ?></script>
-<script src="js/app.js?v=0.6.11-block-client"></script><script src="js/reports.js?v=0.5.5"></script><script src="js/visit-reports.js?v=0.5.5"></script><script src="js/commerce.js?v=0.6.5-cost-labels"></script>
+<script src="js/app.js?v=0.6.12-table-actions"></script><script src="js/reports.js?v=0.5.5"></script><script src="js/visit-reports.js?v=0.5.5"></script><script src="js/commerce.js?v=0.6.12-table-actions"></script>
 </body>
 </html>

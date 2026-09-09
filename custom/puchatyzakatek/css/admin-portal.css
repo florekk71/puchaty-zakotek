@@ -8,3 +8,28 @@ html,body{background:var(--bg);color:var(--ink);font-family:Inter,"Segoe UI",Ari
 @media(prefers-reduced-motion:reduce){.btn,.service,.client-card,.dog-card,.nav button{transition:none;transform:none!important}}
 
 .calendar-event.salon-block{background:#eeeaf4;border-color:#c7b9d6;color:#584567}.calendar-event.salon-block p{overflow-wrap:anywhere}
+
+/* Consistent spacing for table actions, toolbars and form controls. */
+.table td{vertical-align:middle;line-height:1.55;padding-top:16px;padding-bottom:16px}
+.table tbody tr:hover{background:#f8faf6}
+.table .table-actions,.table td:has(>.row-actions){text-align:right;padding-left:24px;min-width:170px}
+.row-actions{display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:10px;min-width:145px}
+.row-actions>.btn{margin:0!important;min-height:42px;white-space:normal;line-height:1.35}
+.table:has(.row-actions) th:last-child{text-align:right}
+#expenseList .table td:nth-child(6),#expenseList .table th:nth-child(6){text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+#expenseList .table td:last-child{width:1%;min-width:190px}
+.card>.btn,.card>div:not(.table-scroll)>.btn{margin-bottom:8px}
+.card>.btn+.btn,.card>div:not(.table-scroll)>.btn+.btn{margin-left:8px}
+.row-actions>.btn.danger{background:#fae9ed;color:#943e57;border:1px solid #f0d2dc}
+.row-actions>.btn.danger:hover{background:#f4d7e0;border-color:#dfaabe}
+#modalFields{column-gap:20px;row-gap:18px}#modalFields .field label{display:block;margin-bottom:7px;line-height:1.4}
+#modalFields .payment-check{display:flex;align-items:center;gap:9px;min-height:44px}
+#modalFields input[type=checkbox]{flex-shrink:0;width:17px;height:17px;margin:0}
+.calendar-event.salon-block>.btn{margin-top:8px;margin-right:6px}
+@media(max-width:780px){
+ .table td{padding-top:13px;padding-bottom:13px}
+ .row-actions{gap:8px}.row-actions>.btn{min-height:44px;padding:10px 13px}
+ .table .table-actions,.table td:has(>.row-actions){padding-left:16px}
+ .calendar-title{flex-wrap:wrap;gap:12px}.calendar-title>div{flex-basis:100%}
+ #modalFields{row-gap:16px}
+}
