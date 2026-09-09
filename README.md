@@ -189,3 +189,7 @@ Kafelek blokady ma przycisk „Rozlicz”. Wybór klienta i psa oraz zatwierdzen
 ### Wyśrodkowanie logowania na telefonie
 
 Patch ekranu logowania zawiera mobilne wyrównanie okna, ikon oraz pól loginu i hasła (do 600 px). Dotyczy szablonu Dolibarra instalowanego podczas budowania obrazu: po `git pull --ff-only` wykonaj `docker compose up -d --build dolibarr`, a następnie odśwież stronę. Samo pobranie plików modułu nie aktualizuje szablonu w obrazie. Instalacje Windows z własnym montowaniem `.pz-core` powinny ponownie zastosować `deploy/install-login.ps1`.
+
+### Potwierdzenia 80 mm — Epson TM-T88VII
+
+Potwierdzenie ma logo salonu zamiast tekstowego nagłówka sprzedawcy. Logo jest wyświetlane w skali szarości, szerokość 48 mm; treść mieści się w 72 mm na rolce 80 mm (obszar nominalny Epson 72,2 mm / 512 punktów). Program czeka na załadowanie logo przed otwarciem wydruku. Dane faktur pozostają bez zmian. W sterowniku wybierz rolkę 80 mm, skalę 100%, wyłącz nagłówki i stopki przeglądarki oraz dodatkowe marginesy. Długość papieru/obcinanie ustawia sterownik — CSS nie wysyła polecenia gilotyny. Zweryfikowano podgląd w przeglądarce; fizyczny wydruk i druk sieciowy wymagają sprawdzenia na urządzeniu. Dokumentacja: https://files.support.epson.com/pdf/pos/bulk/tm-t88vii_trg_en_revg.pdf

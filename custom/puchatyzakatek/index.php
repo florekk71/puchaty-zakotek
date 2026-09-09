@@ -166,7 +166,7 @@ $pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>
   @media print{
     body *{visibility:hidden}
     #receipt,#receipt *{visibility:visible}
-    #receipt{display:block;position:absolute;left:0;top:0;width:80mm;padding:5mm;font-family:Arial,sans-serif;color:#000;background:#fff}
+    #receipt{display:block;position:absolute;left:0;top:0;width:80mm;padding:3mm 4mm;font-family:Arial,sans-serif;color:#000;background:#fff}
     #receipt h2{text-align:center}
     #receipt table{width:100%;border-collapse:collapse}
     #receipt td{padding:3px 0;border-bottom:1px dashed #aaa;font-size:11px}
@@ -255,6 +255,21 @@ $pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>
 .visit-status.status-cancelled,.visit-status.status-unknown{background:#e2dce5;color:#534b58}
 .calendar-legend{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px;font-size:12px;align-items:center}
 .calendar-legend .calendar-empty{padding:5px 9px;margin:6px 0 2px}
+</style>
+<style>
+@media print{
+ /* TM-T88VII: 80 mm roll, nominal printable width 72.2 mm (512 dots). */
+ #receipt{font-size:11px;line-height:1.35;letter-spacing:normal}
+ #receipt .receipt-brand{text-align:center;margin:0 0 3mm;break-inside:avoid}
+ #receipt .receipt-brand img{display:block;width:48mm;max-width:100%;height:auto;margin:0 auto;filter:grayscale(1) contrast(1.6);}
+ #receipt .receipt-address{text-align:center;margin:0 0 3mm}
+ #receipt h3{margin:3mm 0 2mm;letter-spacing:normal;color:#000}
+ #receipt p{margin:2mm 0;orphans:2;widows:2}
+ #receipt table{table-layout:fixed}#receipt tr{break-inside:avoid}
+ #receipt td{vertical-align:top;border-color:#000}
+ #receipt td:last-child{width:22mm;text-align:right;white-space:nowrap;padding-left:2mm}
+ #receipt .receipt-thanks{text-align:center;margin-top:4mm}
+}
 </style>
 <link rel="stylesheet" href="css/admin-portal.css?v=5" media="screen">
 </head>
@@ -428,6 +443,6 @@ $pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>
 </div>
 
 <script type="application/json" id="pzBoot"><?php echo json_encode($pzBoot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE); ?></script>
-<script src="js/app.js?v=0.6.12-table-actions"></script><script src="js/reports.js?v=0.5.5"></script><script src="js/visit-reports.js?v=0.5.5"></script><script src="js/commerce.js?v=0.6.12-table-actions"></script>
+<script src="js/app.js?v=0.6.13-receipt-logo"></script><script src="js/reports.js?v=0.5.5"></script><script src="js/visit-reports.js?v=0.5.5"></script><script src="js/commerce.js?v=0.6.13-receipt-logo"></script>
 </body>
 </html>
