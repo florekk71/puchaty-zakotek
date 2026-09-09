@@ -35,3 +35,12 @@ html,body{background:var(--bg);color:var(--ink);font-family:Inter,"Segoe UI",Ari
 }
 
 .sidebar-foot.sidebar-paws{padding:14px 0 4px;text-align:center}.sidebar-paws svg{display:block;width:100%;max-width:210px;height:auto;margin:auto}
+
+/* Pastel navigation for the staff calendar. */
+.salon-calendar .calendar-toolbar #calendarMode{background:#e4f0e7;color:#355747;border-color:#b9d3c0;font-weight:600}
+.salon-calendar .calendar-toolbar #calendarDate{background:#f5f2e9;color:#455440;border-color:#ded8c5}
+.salon-calendar .calendar-toolbar .btn[data-calendar-shift]{background:#f5e3e9;color:#793f55;border-color:#e7bfcd;font-weight:600}
+.salon-calendar .calendar-toolbar .btn[data-calendar-shift]:hover:not(:disabled){background:#edd0dc;border-color:#d99bb1}
+.salon-calendar .calendar-toolbar .btn[data-action="calendar-today"]{background:#355747;color:#fff;border-color:#355747;font-weight:600}
+.salon-calendar .calendar-toolbar .btn[data-action="calendar-today"]:hover:not(:disabled){background:#294637;border-color:#294637}
+.salon-calendar .calendar-toolbar :is(button,select,input):focus-visible{outline:3px solid #98516c;outline-offset:3px}

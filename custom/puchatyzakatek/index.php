@@ -256,7 +256,7 @@ $pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>
 .calendar-legend{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px;font-size:12px;align-items:center}
 .calendar-legend .calendar-empty{padding:5px 9px;margin:6px 0 2px}
 </style>
-<link rel="stylesheet" href="css/admin-portal.css?v=4" media="screen">
+<link rel="stylesheet" href="css/admin-portal.css?v=5" media="screen">
 </head>
 <body>
 <div class="app">
