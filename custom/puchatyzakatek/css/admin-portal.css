@@ -33,3 +33,5 @@ html,body{background:var(--bg);color:var(--ink);font-family:Inter,"Segoe UI",Ari
  .calendar-title{flex-wrap:wrap;gap:12px}.calendar-title>div{flex-basis:100%}
  #modalFields{row-gap:16px}
 }
+
+.sidebar-foot.sidebar-paws{padding:14px 0 4px;text-align:center}.sidebar-paws svg{display:block;width:100%;max-width:210px;height:auto;margin:auto}

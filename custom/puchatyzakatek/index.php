@@ -256,7 +256,7 @@ $pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>
 .calendar-legend{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px;font-size:12px;align-items:center}
 .calendar-legend .calendar-empty{padding:5px 9px;margin:6px 0 2px}
 </style>
-<link rel="stylesheet" href="css/admin-portal.css?v=3" media="screen">
+<link rel="stylesheet" href="css/admin-portal.css?v=4" media="screen">
 </head>
 <body>
 <div class="app">
@@ -276,7 +276,7 @@ $pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>
       <button data-view="reports"><span class="ico">📊</span>Raporty wizyt</button>
       <button data-view="settings"><span class="ico">⚙️</span>Ustawienia</button>
     </div>
-    <div class="sidebar-foot">Dane salonu w Dolibarrze<br>Wizyty • psy • płatności</div>
+    <div class="sidebar-foot sidebar-paws" aria-hidden="true"><svg viewBox="0 0 210 80" fill="none" focusable="false"><path d="M20 59Q100 9 188 42" stroke="#dce4d5" stroke-width="1.5" stroke-dasharray="2 7" stroke-linecap="round"/><g transform="translate(45 49) rotate(-23) scale(.7)" fill="#a7c6b3"><ellipse cx="-15" cy="-8" rx="5" ry="7" transform="rotate(-25 -15 -8)"/><ellipse cx="-6" cy="-17" rx="5" ry="7" transform="rotate(-10 -6 -17)"/><ellipse cx="6" cy="-17" rx="5" ry="7" transform="rotate(10 6 -17)"/><ellipse cx="15" cy="-8" rx="5" ry="7" transform="rotate(25 15 -8)"/><path d="M-14 10C-14 3-7-5 0-5S14 3 14 10C14 19 6 15 0 15S-14 19-14 10Z"/></g><g transform="translate(104 32) rotate(14) scale(.8)" fill="#d9a9b8"><ellipse cx="-15" cy="-8" rx="5" ry="7" transform="rotate(-25 -15 -8)"/><ellipse cx="-6" cy="-17" rx="5" ry="7" transform="rotate(-10 -6 -17)"/><ellipse cx="6" cy="-17" rx="5" ry="7" transform="rotate(10 6 -17)"/><ellipse cx="15" cy="-8" rx="5" ry="7" transform="rotate(25 15 -8)"/><path d="M-14 10C-14 3-7-5 0-5S14 3 14 10C14 19 6 15 0 15S-14 19-14 10Z"/></g><g transform="translate(165 47) rotate(-12) scale(.7)" fill="#a7c6b3"><ellipse cx="-15" cy="-8" rx="5" ry="7" transform="rotate(-25 -15 -8)"/><ellipse cx="-6" cy="-17" rx="5" ry="7" transform="rotate(-10 -6 -17)"/><ellipse cx="6" cy="-17" rx="5" ry="7" transform="rotate(10 6 -17)"/><ellipse cx="15" cy="-8" rx="5" ry="7" transform="rotate(25 15 -8)"/><path d="M-14 10C-14 3-7-5 0-5S14 3 14 10C14 19 6 15 0 15S-14 19-14 10Z"/></g><path d="M105 69l-4-4c-4-4 1-8 4-4 3-4 8 0 4 4Z" fill="#d9a9b8"/></svg></div>
   </aside>
 
   <main class="main">
