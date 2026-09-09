@@ -185,3 +185,7 @@ Dodawanie i zmiana terminu w panelu pozwala wpisać godzinę poza grafikiem port
 ### Rozliczenie blokady
 
 Kafelek blokady ma przycisk „Rozlicz”. Wybór klienta i psa oraz zatwierdzenie przypisuje termin do planowanej wizyty i otwiera usługi w POS. Miejsce pozostaje zajęte przez całą operację. Przerwanie dalszego rozliczenia pozostawia wizytę w terminarzu. Ponowienie przypisania zwraca tę samą wizytę. „Zwolnij termin” nadal służy do usunięcia aktywnej blokady z dostępności.
+
+### Wyśrodkowanie logowania na telefonie
+
+Patch ekranu logowania zawiera mobilne wyrównanie okna, ikon oraz pól loginu i hasła (do 600 px). Dotyczy szablonu Dolibarra instalowanego podczas budowania obrazu: po `git pull --ff-only` wykonaj `docker compose up -d --build dolibarr`, a następnie odśwież stronę. Samo pobranie plików modułu nie aktualizuje szablonu w obrazie. Instalacje Windows z własnym montowaniem `.pz-core` powinny ponownie zastosować `deploy/install-login.ps1`.

@@ -109,6 +109,29 @@ body.bodylogin #img_logo {width:260px !important;height:260px !important;max-hei
 HTML;
     $source=str_replace($anchor,$style."\n".$anchor,$source);
 }
+if(!str_contains($source,'PZ_LOGIN_MOBILE_V1')){
+    $anchor='<div class="login_table">';
+    if(substr_count($source,$anchor)!==1)throw new RuntimeException('Unsupported mobile login layout');
+    $style=<<<'HTML'
+<!-- PZ_LOGIN_MOBILE_V1 -->
+<style>
+@media(max-width:600px){
+ body.bodylogin{margin:0!important;min-width:0!important;width:100%!important;box-sizing:border-box;}
+ body.bodylogin .login_center{display:flex!important;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;min-height:100svh;width:100%!important;max-width:100%!important;margin:0!important;padding:16px 12px!important;box-sizing:border-box;}
+ body.bodylogin .login_vertical_align{display:block!important;position:static!important;transform:none!important;float:none!important;width:100%!important;min-width:0!important;max-width:575px!important;height:auto!important;margin:0 auto!important;padding:0!important;}
+ body.bodylogin form#login{width:100%!important;min-width:0!important;max-width:100%!important;margin:0 auto!important;padding:24px 16px!important;box-sizing:border-box;}
+ body.bodylogin .login_table,body.bodylogin #login_left,body.bodylogin #login_right,body.bodylogin #login_right .tagtable{display:block!important;float:none!important;position:static!important;left:auto!important;right:auto!important;width:100%!important;min-width:0!important;max-width:100%!important;margin-left:0!important;margin-right:0!important;padding-left:0!important;padding-right:0!important;box-sizing:border-box;}
+ body.bodylogin #login_left{text-align:center!important;}
+ body.bodylogin .trinputlogin{display:block!important;width:100%!important;min-width:0!important;margin:0 0 20px!important;}
+ body.bodylogin .tdinputlogin{display:grid!important;grid-template-columns:24px minmax(0,1fr);align-items:center;gap:8px;position:relative!important;float:none!important;width:100%!important;min-width:0!important;padding:0!important;margin:0!important;box-sizing:border-box;white-space:normal!important;}
+ body.bodylogin .tdinputlogin>.fa{grid-column:1;grid-row:1;position:static!important;margin:0!important;text-align:center;}
+ body.bodylogin #username,body.bodylogin #password{grid-column:2;grid-row:1;width:100%!important;min-width:0!important;max-width:100%!important;margin:0!important;left:auto!important;right:auto!important;float:none!important;box-sizing:border-box;font-size:16px!important;padding:12px 36px 12px 12px!important;}
+ body.bodylogin #togglepassword{position:absolute!important;right:10px!important;top:50%!important;transform:translateY(-50%);margin:0!important;}
+}
+</style>
+HTML;
+    $source=str_replace($anchor,$style."\n".$anchor,$source);
+}
 if(file_put_contents($targetPath,$source)===false)throw new RuntimeException('Cannot write branded login template');
 echo "PZ_LOGIN_BRAND_OK\n";
 
