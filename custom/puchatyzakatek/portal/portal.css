@@ -24,3 +24,19 @@
  .day>.slot{flex-shrink:0}
  .day>.closed-day{flex:1;margin-bottom:10px}
 }
+
+/* Shared salon palette and touch targets. */
+.calendar-toolbar #previous,.calendar-toolbar #next{background:#f5e4eb;border-color:#e7b7c9;color:#873e55}
+.calendar-toolbar #previous:hover,.calendar-toolbar #next:hover{background:#efd3df}
+.calendar-toolbar #today{background:#355747;border-color:#355747;color:#fff}
+.calendar-toolbar #refresh{background:#e4f0e8;border-color:#b9d6c3;color:#355747}
+.calendar-toolbar #from{background:#f5f2e9;border-color:#ded7c1;color:#355747}
+.calendar-toolbar :is(button,input){min-height:44px}
+.calendar-toolbar :is(button,input):focus-visible{outline:3px solid #98516c;outline-offset:3px}
+.calendar-toolbar button:disabled{opacity:.45;cursor:default}
+@media(max-width:760px){
+ #mobileDays,#calendar{touch-action:pan-y pinch-zoom}
+ .mobile-day{background:#e4f0e8;border-color:#b9d6c3}
+ .mobile-day[aria-pressed="true"]{background:#355747;border-color:#355747;color:#fff}
+ .slot.free:hover{transform:none}
+}

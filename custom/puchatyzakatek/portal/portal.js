@@ -59,6 +59,43 @@
     document.querySelectorAll('.day').forEach(n => n.classList.toggle('mobile-active', n.dataset.day === day));
     document.querySelectorAll('.mobile-day').forEach(n => n.setAttribute('aria-pressed', String(n.dataset.day === day)));
   }
+  async function shiftCalendar(direction, step = 7) {
+    const oldDay = activeDay, oldFrom = $('from').value;
+    const target = addDays(activeDay || oldFrom, direction * step);
+    if (target < status.today || target > $('from').max) return;
+    if (step === 1 && [...$('mobileDays').children].some(n => n.dataset.day === target)) { selectDay(target); return; }
+    $('from').value = [status.today, addDays(oldFrom, direction * 7), $('from').max].sort()[1];
+    activeDay = target;
+    try { await calendar(); } catch (e) { activeDay = oldDay; $('from').value = oldFrom; throw e; }
+  }
+  let gesture = null, ignoreClickUntil = 0;
+  const touchEnabled = () => status && !busy && matchMedia('(max-width:760px)').matches && !document.querySelector('dialog[open]');
+  for (const host of [$('mobileDays'), $('calendar')]) {
+    host.addEventListener('touchstart', e => {
+      gesture = null;
+      if (!touchEnabled() || e.touches.length !== 1 || e.target.closest('input,select,textarea,a')) return;
+      const t = e.touches[0]; gesture = { id:t.identifier, x:t.clientX, y:t.clientY, time:Date.now(), horizontal:false, day:activeDay, from:$('from').value };
+    }, { passive:true });
+    host.addEventListener('touchmove', e => {
+      if (!gesture) return;
+      if (e.touches.length !== 1 || e.touches[0].identifier !== gesture.id) { gesture = null; return; }
+      const t = e.touches[0], dx = t.clientX - gesture.x, dy = t.clientY - gesture.y;
+      if (!gesture.horizontal && Math.max(Math.abs(dx), Math.abs(dy)) > 12) {
+        if (Math.abs(dx) > Math.abs(dy) * 1.5) gesture.horizontal = true; else { gesture = null; return; }
+      }
+      if (gesture.horizontal) { if (e.cancelable) e.preventDefault(); ignoreClickUntil = Date.now() + 600; }
+    }, { passive:false });
+    host.addEventListener('touchend', e => {
+      const g = gesture; gesture = null; if (!g) return;
+      const t = [...e.changedTouches].find(t => t.identifier === g.id); if (!t) return;
+      const dx = t.clientX - g.x, dy = t.clientY - g.y;
+      if (!g.horizontal || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5 || Date.now() - g.time > 1500 || !touchEnabled() || activeDay !== g.day || $('from').value !== g.from) return;
+      if (e.cancelable) e.preventDefault(); ignoreClickUntil = Date.now() + 600;
+      run(() => shiftCalendar(dx < 0 ? 1 : -1, host.id === 'mobileDays' ? 1 : 7));
+    }, { passive:false });
+    host.addEventListener('touchcancel', () => { gesture = null; }, { passive:true });
+    host.addEventListener('click', e => { if (Date.now() < ignoreClickUntil) { e.preventDefault(); e.stopImmediatePropagation(); } }, true);
+  }
   function overlaps(slot, occupied) { return occupied.start < slot.end && (occupied.end <= occupied.start || occupied.end > slot.start); }
   async function calendar() {
     const from = $('from').value;
