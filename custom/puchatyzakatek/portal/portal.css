@@ -41,8 +41,7 @@
  .slot.free:hover{transform:none}
 }
 
-.nearest-slots{display:none}
-@media(max-width:760px){
+.nearest-slots[hidden]{display:none}
  .nearest-slots:not([hidden]){display:block;padding:0 19px 20px}
  .nearest-slots h3{font-size:13px;font-weight:600;line-height:1.5;margin:0 0 10px;color:#355747}
  .nearest-slots-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
@@ -52,4 +51,14 @@
  .nearest-action{font-size:11px;margin-top:auto}
  .nearest-slot:active{background:#d6e9d8}
  .nearest-slot:focus-visible{outline:3px solid #98516c;outline-offset:3px}
+
+@media(min-width:761px){
+ .nearest-slots:not([hidden]){padding:0 29px 26px}
+ .nearest-slots h3{font-size:15px;margin-bottom:14px}
+ .nearest-slots-list{gap:16px}
+ .nearest-slot{display:grid;grid-template-columns:1fr auto;gap:8px 20px;padding:20px 24px;align-items:center;transition:background .18s,border-color .18s}
+ .nearest-date{font-size:13px;min-height:0}
+ .nearest-time{font-size:22px;grid-column:1}
+ .nearest-action{font-size:13px;grid-column:2;grid-row:1/3;margin:0}
+ .nearest-slot:hover{background:#d6e9d8;border-color:#91b99e}
 }
