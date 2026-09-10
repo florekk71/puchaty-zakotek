@@ -2,15 +2,21 @@
 require_once __DIR__.'/mail-template.lib.php';
 require_once __DIR__.'/mail-mime.lib.php';
 // SMTP secrets are mounted outside the web root. No secret values are returned by the API.
+function pz_mail_salon_address($address){
+    // Compatibility for existing private INI files and saved salon notification settings.
+    return strcasecmp(trim((string)$address),'biuro@topkomp.pl')===0?'biuro@puchaty-zakatek.pl':$address;
+}
 function pz_mail_config() {
     $path=getenv('PZ_MAIL_CONFIG') ?: '/run/secrets/pz-mail.ini';
     if(!is_file($path))return array('delivery'=>array('enabled'=>false));
     $c=@parse_ini_file($path,true,INI_SCANNER_TYPED);
     if(!is_array($c))throw new RuntimeException('Nieprawidlowy plik konfiguracji poczty.');
+    foreach(array('address','reply_to') as $key)if(isset($c['sender'][$key]))$c['sender'][$key]=pz_mail_salon_address($c['sender'][$key]);
+    if(isset($c['delivery']['test_recipient']))$c['delivery']['test_recipient']=pz_mail_salon_address($c['delivery']['test_recipient']);
     return $c;
 }
 function pz_mail_enabled($c,$event){return !empty($c['delivery']['enabled'])&&!empty($c['messages'][$event]);}
-function pz_mail_owner(){return pz_config()['mailOwner']??array('address'=>'','enabled'=>false,'events'=>array());}
+function pz_mail_owner(){$o=pz_config()['mailOwner']??array('address'=>'','enabled'=>false,'events'=>array());$o['address']=pz_mail_salon_address($o['address']??'');return $o;}
 function pz_mail_owner_enabled($c,$event){$o=pz_mail_owner();return !empty($c['delivery']['enabled'])&&!empty($o['enabled'])&&!empty($o['events'][$event])&&filter_var($o['address']??'',FILTER_VALIDATE_EMAIL);}
 function pz_mail_owner_save($input){
     if(!pz_can_manage())throw new InvalidArgumentException('Brak uprawnień do ustawień poczty.');
@@ -90,6 +96,7 @@ function pz_mail_reminders($c,$now=null){
 function pz_mail_prepare($m,$c){
     $file=null;$body='';$details=array();$event=$m['event'];
     $owner=($m['audience']??'client')==='owner';
+    if($owner&&isset($m['ownerAddress']))$m['ownerAddress']=pz_mail_salon_address($m['ownerAddress']);
     if($owner&&(!pz_mail_owner_enabled($c,$event)||($m['ownerAddress']??'')!==(pz_mail_owner()['address']??'')))return null;
     if($event==='invoice_after_payment'){
         $d=pz_store('document',$m['objectId']);if(!$d||$d['state']!=='issued'||empty($d['received']))return null;

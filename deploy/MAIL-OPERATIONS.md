@@ -13,3 +13,5 @@ Blokada bazy zapobiega równoległej obsłudze, a klucze zdarzeń zapobiegają i
 Wstrzymanie przetwarzania: `systemctl stop puchaty-mail.timer`. Dodatkowo ustawienie `[delivery] enabled = false` w `mail-config.ini` zatrzymuje tworzenie nowych powiadomień. Po podmianie pliku INI odtworzyć kontener: `docker compose up -d --no-deps --force-recreate dolibarr`.
 
 Konfiguracja lokalnego przekaźnika: `172.24.0.1:25`, bez uwierzytelniania, dostępny z sieci aplikacji. Plik `mail-config.ini` jest montowany tylko do odczytu poza katalogiem WWW i wykluczony z Gita. Nadawca: `noreply@zakatek.topkomp.pl`.
+
+Adres kontaktowy salonu: `biuro@puchaty-zakatek.pl`. Szablony i nagłówek Reply-To używają konfiguracji `[sender]`. Stara wartość `biuro@topkomp.pl` w polach nadawcy/odpowiedzi, odbiorcy testowego i powiadomień właściciela jest odczytywana jako nowy adres, również dla oczekujących powiadomień właściciela. Adresy klientów nie są migrowane. Login i hasło SMTP pozostają bez zmian; zmiana skrzynki używanej do uwierzytelniania wymaga uzupełnienia prywatnego `mail-config.ini` danymi nowej skrzynki. Test: `php tests/salon-email.php`.
