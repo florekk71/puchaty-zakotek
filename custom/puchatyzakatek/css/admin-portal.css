@@ -44,3 +44,46 @@ html,body{background:var(--bg);color:var(--ink);font-family:Inter,"Segoe UI",Ari
 .salon-calendar .calendar-toolbar .btn[data-action="calendar-today"]{background:#355747;color:#fff;border-color:#355747;font-weight:600}
 .salon-calendar .calendar-toolbar .btn[data-action="calendar-today"]:hover:not(:disabled){background:#294637;border-color:#294637}
 .salon-calendar .calendar-toolbar :is(button,select,input):focus-visible{outline:3px solid #98516c;outline-offset:3px}
+
+/* Pastel lists and aligned calendar controls. Screen styles only. */
+.table tbody tr:nth-child(odd){background:#edf5ef}
+.table tbody tr:nth-child(even){background:#faf0f3}
+.table tbody tr:hover{background:#e1ede4}
+.client-card:nth-child(odd),.dog-card:nth-child(odd){background:#edf5ef;border-color:#d4e4d8}
+.client-card:nth-child(even),.dog-card:nth-child(even){background:#faf0f3;border-color:#edd7df}
+.client-card:hover,.dog-card:hover{border-color:#8cad97;box-shadow:0 4px 14px #35574712}
+.salon-calendar .calendar-toolbar{display:grid;grid-template-columns:125px 112px minmax(155px,215px) 112px 95px;align-items:end;gap:12px}
+.salon-calendar .calendar-toolbar>label{display:flex;flex-direction:column;gap:7px;margin:0;min-width:0}
+.salon-calendar .calendar-toolbar>.btn,.salon-calendar .calendar-toolbar input,.salon-calendar .calendar-toolbar select{height:44px;min-height:44px;margin:0!important;box-sizing:border-box;width:100%}
+.calendar-menu-toggle{display:none}
+@media(min-width:781px) and (max-width:1050px){.salon-calendar .calendar-toolbar{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:780px){
+ body:has(#calendar.view.active) .sidebar{padding:8px 12px;border:0}
+ body:has(#calendar.view.active) .sidebar .brand,body:has(#calendar.view.active) .sidebar .sidebar-foot{display:none}
+ body:has(#calendar.view.active) .calendar-menu-toggle{display:block;min-height:44px;width:100%;text-align:left;margin:0}
+ body:has(#calendar.view.active) .sidebar:not(.mobile-menu-open) .nav{display:none}
+ body:has(#calendar.view.active) .sidebar.mobile-menu-open .nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}
+ body:has(#calendar.view.active):not(:has(.sidebar.mobile-menu-open)) .topbar{display:none}
+ body:has(#calendar.view.active) .content{padding:4px 10px 16px}
+ .salon-calendar .calendar-title{padding:14px 14px 10px;gap:8px}
+ .salon-calendar .calendar-title>div{flex-basis:100%}
+ .salon-calendar .calendar-title h3{font-size:23px}
+ .salon-calendar .salon-eyebrow,.salon-calendar .calendar-subtitle{display:none}
+ .salon-calendar .calendar-title>.btn{min-height:42px;flex:1;margin:0!important;font-size:12px}
+ .salon-calendar .calendar-toolbar{grid-template-columns:repeat(3,minmax(0,1fr));padding:12px;gap:8px}
+ .salon-calendar .calendar-toolbar>label:first-child{grid-column:1;grid-row:1}
+ .salon-calendar .calendar-toolbar>label:has(#calendarDate){grid-column:2/4;grid-row:1}
+ .salon-calendar .calendar-toolbar>[data-calendar-shift="-1"]{grid-column:1;grid-row:2}
+ .salon-calendar .calendar-toolbar>[data-action="calendar-today"]{grid-column:2;grid-row:2}
+ .salon-calendar .calendar-toolbar>[data-calendar-shift="1"]{grid-column:3;grid-row:2}
+ .salon-calendar .calendar-toolbar .btn{padding:8px 4px;font-size:11px}
+ .salon-calendar .calendar-meta{padding:10px 12px;gap:7px}
+ .salon-calendar #calendarRange{margin:0;font-size:12px}
+ .salon-calendar .calendar-legend{font-size:10px}
+ .salon-calendar .salon-mobile-days{padding:0 10px 10px}
+ .salon-calendar .salon-mobile-day{min-height:58px;padding:7px 0}
+ .salon-calendar .calendar-board{padding:0 12px 14px}
+ .salon-calendar .salon-day-heading{padding-top:4px}
+}
+
+@media(max-width:780px){body:has(#calendar.view.active):not(:has(.sidebar.mobile-menu-open)) .content>button[data-action="refresh"]{display:none}}

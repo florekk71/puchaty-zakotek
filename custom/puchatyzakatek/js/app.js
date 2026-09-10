@@ -80,7 +80,13 @@ function renderCart(){
   $('paymentCartBody').innerHTML=cart.map(s=>`<tr><td>${esc(s.name)}</td><td>${money(s.price)}</td></tr>`).join('');
   $('cartTotal').textContent=$('paymentCartTotal').textContent=money(cart.reduce((sum,s)=>sum+s.price,0));
 }
+$('calendarMenuToggle').addEventListener('click',()=>{
+ const opened=document.querySelector('.sidebar').classList.toggle('mobile-menu-open');
+ $('calendarMenuToggle').setAttribute('aria-expanded',String(opened));
+});
 function showView(id){
+  document.querySelector('.sidebar').classList.remove('mobile-menu-open');
+  $('calendarMenuToggle').setAttribute('aria-expanded','false');
   document.querySelectorAll('.view').forEach(e=>e.classList.toggle('active',e.id===id));
   document.querySelectorAll('.nav button').forEach(e=>{e.classList.toggle('active',e.dataset.view===id);if(e.dataset.view===id)$('pageTitle').textContent=e.textContent.trim();});
 }

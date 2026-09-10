@@ -271,7 +271,7 @@ $pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>
  #receipt .receipt-thanks{text-align:center;margin-top:4mm}
 }
 </style>
-<link rel="stylesheet" href="css/admin-portal.css?v=5" media="screen">
+<link rel="stylesheet" href="css/admin-portal.css?v=6" media="screen">
 </head>
 <body>
 <div class="app">
@@ -281,7 +281,8 @@ $pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>
       <h1>Puchaty Zakątek</h1>
       <small>SPA DLA PSÓW • STRZYŻENIE & MYCIE</small>
     </div>
-    <div class="nav">
+    <button type="button" id="calendarMenuToggle" class="btn ghost calendar-menu-toggle" aria-expanded="false" aria-controls="mainNavigation">☰ Menu salonu</button>
+    <div class="nav" id="mainNavigation">
       <button data-view="calendar"><span class="ico">📅</span>Terminarz</button>
       <button class="active" data-view="pos"><span class="ico">🛒</span>Sprzedaż</button>
       <button data-view="documents"><span class="ico">📄</span>Dokumenty</button><button data-view="catalog"><span class="ico">📦</span>Magazyn</button><button data-view="business"><span class="ico">📊</span>NDG i raporty</button><button data-view="clients"><span class="ico">👤</span>Klienci</button>
@@ -443,6 +444,6 @@ $pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>
 </div>
 
 <script type="application/json" id="pzBoot"><?php echo json_encode($pzBoot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE); ?></script>
-<script src="js/app.js?v=0.6.13-receipt-logo"></script><script src="js/reports.js?v=0.5.5"></script><script src="js/visit-reports.js?v=0.5.5"></script><script src="js/commerce.js?v=0.6.13-receipt-logo"></script>
+<script src="js/app.js?v=0.6.14-mobile-calendar"></script><script src="js/reports.js?v=0.5.5"></script><script src="js/visit-reports.js?v=0.5.5"></script><script src="js/commerce.js?v=0.6.14-mobile-calendar"></script>
 </body>
 </html>
