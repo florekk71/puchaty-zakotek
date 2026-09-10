@@ -193,3 +193,7 @@ Patch ekranu logowania zawiera mobilne wyrównanie okna, ikon oraz pól loginu i
 ### Potwierdzenia 80 mm — Epson TM-T88VII
 
 Potwierdzenie ma logo salonu zamiast tekstowego nagłówka sprzedawcy. Logo jest wyświetlane w skali szarości, szerokość 48 mm; treść mieści się w 72 mm na rolce 80 mm (obszar nominalny Epson 72,2 mm / 512 punktów). Program czeka na załadowanie logo przed otwarciem wydruku. Dane faktur pozostają bez zmian. W sterowniku wybierz rolkę 80 mm, skalę 100%, wyłącz nagłówki i stopki przeglądarki oraz dodatkowe marginesy. Długość papieru/obcinanie ustawia sterownik — CSS nie wysyła polecenia gilotyny. Zweryfikowano podgląd w przeglądarce; fizyczny wydruk i druk sieciowy wymagają sprawdzenia na urządzeniu. Dokumentacja: https://files.support.epson.com/pdf/pos/bulk/tm-t88vii_trg_en_revg.pdf
+
+### Gesty mobilnego terminarza
+
+Na telefonie przesunięcie palcem po dniach tygodnia lub obszarze wizyt w lewo pokazuje następny okres, w prawo poprzedni. Widok Tydzień przesuwa o tydzień, Dzień o dzień. Przyciski nadal działają. Gest wymaga wyraźnego ruchu poziomego; przewijanie pionowe, krótkie dotknięcie i powiększanie dwoma palcami nie służą do zmiany daty. Gest nie uruchamia przycisku znajdującego się pod palcem.

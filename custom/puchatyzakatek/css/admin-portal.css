@@ -87,3 +87,5 @@ html,body{background:var(--bg);color:var(--ink);font-family:Inter,"Segoe UI",Ari
 }
 
 @media(max-width:780px){body:has(#calendar.view.active):not(:has(.sidebar.mobile-menu-open)) .content>button[data-action="refresh"]{display:none}}
+
+@media(max-width:780px){#calendarBoard,#calendarMobileDays{touch-action:pan-y pinch-zoom}}
