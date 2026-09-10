@@ -277,7 +277,7 @@ $pzBoot=array('userId'=>(int)$user->id,'manage'=>(bool)pz_can_manage(),'token'=>
 <div class="app">
   <aside class="sidebar">
     <div class="brand">
-      <div class="logo-mark"><img src="img/logo-transparent.png?v=2" alt="Logo Puchaty Zakątek"></div>
+      <div class="logo-mark"><a href="https://puchaty-zakatek.pl" aria-label="Puchaty Zakątek — strona główna"><img src="img/logo-transparent.png?v=2" alt="Logo Puchaty Zakątek"></a></div>
       <h1>Puchaty Zakątek</h1>
       <small>SPA DLA PSÓW • STRZYŻENIE & MYCIE</small>
     </div>

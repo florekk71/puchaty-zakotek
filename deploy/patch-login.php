@@ -132,6 +132,10 @@ if(!str_contains($source,'PZ_LOGIN_MOBILE_V1')){
 HTML;
     $source=str_replace($anchor,$style."\n".$anchor,$source);
 }
+if(!str_contains($source,'PZ_LOGIN_HOME_LINK_V1')){
+    $source=preg_replace('~(<img alt="Puchaty Zakątek".*?id="img_logo".*?/>)~s','<!-- PZ_LOGIN_HOME_LINK_V1 --><a href="https://puchaty-zakatek.pl" aria-label="Puchaty Zakątek — strona główna">$1</a>',$source,-1,$count);
+    if($count!==1)throw new RuntimeException('Unsupported login logo link structure');
+}
 if(file_put_contents($targetPath,$source)===false)throw new RuntimeException('Cannot write branded login template');
 echo "PZ_LOGIN_BRAND_OK\n";
 
