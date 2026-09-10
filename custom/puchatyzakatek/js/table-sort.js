@@ -34,7 +34,7 @@
   for(const h of table.tHead.rows[0].cells){if(h.dataset.sortLabel===undefined)continue;h.setAttribute('aria-sort',h===header?(desc?'descending':'ascending'):'none');const button=h.querySelector('.table-sort');button.textContent=h===header?(desc?'↓':'↑'):'↕';button.setAttribute('aria-label','Sortuj: '+h.dataset.sortLabel+(h===header&&!desc?' — malejąco':' — rosnąco'));}
  }
  function prepare(){
-  document.querySelectorAll('.content table,#pzModal table').forEach(table=>{
+  document.querySelectorAll('.content table,.view table,#pzModal table').forEach(table=>{
    if(prepared.has(table)||!table.tHead||table.tHead.rows.length!==1||!table.tBodies.length||table.querySelector('input,select,textarea')||table.closest('#receipt'))return;
    prepared.add(table);
    [...table.tHead.rows[0].cells].forEach((header,index)=>{
