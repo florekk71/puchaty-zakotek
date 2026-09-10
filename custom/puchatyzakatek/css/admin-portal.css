@@ -89,3 +89,6 @@ html,body{background:var(--bg);color:var(--ink);font-family:Inter,"Segoe UI",Ari
 @media(max-width:780px){body:has(#calendar.view.active):not(:has(.sidebar.mobile-menu-open)) .content>button[data-action="refresh"]{display:none}}
 
 @media(max-width:780px){#calendarBoard,#calendarMobileDays{touch-action:pan-y pinch-zoom}}
+
+.sortable-column{cursor:pointer;user-select:none}.table-sort{display:inline-flex;align-items:center;justify-content:center;min-width:30px;min-height:32px;margin-left:5px;padding:2px;border:0;border-radius:7px;background:transparent;color:#657d69;font:inherit;font-size:15px;vertical-align:middle}.sortable-column:hover{background:#e0ecdf}.sortable-column[aria-sort="ascending"],.sortable-column[aria-sort="descending"]{color:#294d3a;background:#dfeddf}.table-sort:focus-visible{outline:2px solid #98516c;outline-offset:2px}
+@media(max-width:780px){.table-sort{min-width:36px;min-height:40px}}

@@ -197,3 +197,7 @@ Potwierdzenie ma logo salonu zamiast tekstowego nagłówka sprzedawcy. Logo jest
 ### Gesty mobilnego terminarza
 
 Na telefonie przesunięcie palcem po pasku dni zmienia wybrany dzień o jeden, również przez granicę tygodnia. Przesunięcie po obszarze wizyt poniżej paska dni zmienia tydzień (7 dni), zachowując dzień tygodnia. W lewo przechodzisz do przodu, w prawo do tyłu. Przyciski nadal działają. Gest wymaga wyraźnego ruchu poziomego; przewijanie pionowe, krótkie dotknięcie i powiększanie dwoma palcami nie służą do zmiany daty. Gest nie uruchamia przycisku znajdującego się pod palcem.
+
+### Sortowanie list
+
+Kliknięcie nagłówka kolumny lub strzałki sortuje tabelę rosnąco, ponowne kliknięcie malejąco. Obsługiwane są nazwy po polsku, liczby i kwoty oraz daty; brakujące wartości trafiają na koniec. Sortowane są całe wiersze wraz z przyciskami dotyczącymi właściwego rekordu. Dotyczy również tabel generowanych po otwarciu raportu lub szczegółów. Akcje, edytory pozycji dokumentu i wiersze podsumowań nie są sortowane. Ponowne pobranie danych przywraca kolejność źródłową.
