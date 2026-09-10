@@ -40,3 +40,16 @@
  .mobile-day[aria-pressed="true"]{background:#355747;border-color:#355747;color:#fff}
  .slot.free:hover{transform:none}
 }
+
+.nearest-slots{display:none}
+@media(max-width:760px){
+ .nearest-slots:not([hidden]){display:block;padding:0 19px 20px}
+ .nearest-slots h3{font-size:13px;font-weight:600;line-height:1.5;margin:0 0 10px;color:#355747}
+ .nearest-slots-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .nearest-slot{display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-width:0;width:100%;padding:14px 12px;text-align:left;background:#e4f0e8;border:1px solid #b9d6c3;border-radius:12px;color:#355747}
+ .nearest-date{font-size:11px;line-height:1.5;min-height:3em}
+ .nearest-time{font-size:17px;white-space:nowrap}
+ .nearest-action{font-size:11px;margin-top:auto}
+ .nearest-slot:active{background:#d6e9d8}
+ .nearest-slot:focus-visible{outline:3px solid #98516c;outline-offset:3px}
+}

@@ -105,6 +105,16 @@
     const total = response.days.reduce((sum, day) => sum + (day.closed ? 0 : day.slots.filter(s => s.available).length), 0);
     const plural = new Intl.PluralRules('pl').select(total);
     $('availabilityCount').textContent = total ? `${total} ${plural === 'one' ? 'wolny termin' : plural === 'few' ? 'wolne terminy' : 'wolnych terminów'} łącznie` : 'Brak wolnych terminów w tym tygodniu';
+    const nearest = response.days.filter(day => !day.closed).flatMap(day => day.slots.filter(slot => slot.available)).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 2);
+    $('nearestSlotsList').replaceChildren();
+    $('nearestSlots').hidden = nearest.length === 0;
+    for (const slot of nearest) {
+      const button = node('button', undefined, 'nearest-slot'); button.type = 'button';
+      button.setAttribute('aria-label', `Rezerwuj: ${dateLabel(slot.date.slice(0, 10))}, ${slot.start}–${slot.end}`);
+      button.append(node('span', dateLabel(slot.date.slice(0, 10)), 'nearest-date'), node('strong', `${slot.start}–${slot.end}`, 'nearest-time'), node('span', 'Rezerwuj wizytę ↗', 'nearest-action'));
+      button.addEventListener('click', () => choose(slot.date));
+      $('nearestSlotsList').append(button);
+    }
     $('rangeTitle').textContent = format(from, { day: 'numeric', month: 'short' }) + ' — ' + format(addDays(from, 6), { day: 'numeric', month: 'short', year: 'numeric' });
     $('calendar').replaceChildren(); $('mobileDays').replaceChildren();
     if (!response.days.some(d => d.date === activeDay)) activeDay = response.days.find(d => !d.closed && d.slots.some(s => s.available))?.date || response.days[0]?.date;
