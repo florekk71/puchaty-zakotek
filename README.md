@@ -196,4 +196,4 @@ Potwierdzenie ma logo salonu zamiast tekstowego nagłówka sprzedawcy. Logo jest
 
 ### Gesty mobilnego terminarza
 
-Na telefonie przesunięcie palcem po dniach tygodnia lub obszarze wizyt w lewo pokazuje następny okres, w prawo poprzedni. Widok Tydzień przesuwa o tydzień, Dzień o dzień. Przyciski nadal działają. Gest wymaga wyraźnego ruchu poziomego; przewijanie pionowe, krótkie dotknięcie i powiększanie dwoma palcami nie służą do zmiany daty. Gest nie uruchamia przycisku znajdującego się pod palcem.
+Na telefonie przesunięcie palcem po pasku dni zmienia wybrany dzień o jeden, również przez granicę tygodnia. Przesunięcie po obszarze wizyt poniżej paska dni zmienia tydzień (7 dni), zachowując dzień tygodnia. W lewo przechodzisz do przodu, w prawo do tyłu. Przyciski nadal działają. Gest wymaga wyraźnego ruchu poziomego; przewijanie pionowe, krótkie dotknięcie i powiększanie dwoma palcami nie służą do zmiany daty. Gest nie uruchamia przycisku znajdującego się pod palcem.

@@ -29,7 +29,13 @@
    if(g.axis!=='horizontal'||Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.5||Date.now()-g.time>1500)return;
    if(!enabled()||g.mode!==$('calendarMode').value||g.date!==$('calendarDate').value)return;
    if(event.cancelable)event.preventDefault();ignoreClickUntil=Date.now()+600;
-   shiftCalendar(dx<0?1:-1);
+   const direction=dx<0?1:-1;
+   const step=host.id==='calendarMobileDays'?1:7;
+   const selected=($('calendarMode').value==='week'?salonCalendarDay:null)||$('calendarDate').value||today();
+   const date=new Date(selected+'T12:00:00');
+   date.setDate(date.getDate()+direction*step);
+   const iso=calendarIso(date);
+   salonCalendarDay=iso;$('calendarDate').value=iso;renderCalendar();
   },{passive:false});
   host.addEventListener('touchcancel',cancel,{passive:true});
   host.addEventListener('click',event=>{
