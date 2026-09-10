@@ -27,10 +27,11 @@ function pz_portal_account() {
     $id=$_SESSION['pz_customer']??'';
     if(!$id||($_SESSION['pz_until']??0)<time())return null;
     $a=pz_store('portal_account',$id);
+    if(($a['authVersion']??0)!==($_SESSION['pz_auth_version']??0))return null;
     return $a&&!empty($a['active'])?$a:null;
 }
 function pz_portal_login($a){
-    session_regenerate_id(true);$_SESSION=array('pz_customer'=>$a['id'],'pz_until'=>time()+43200,'pz_csrf'=>bin2hex(random_bytes(32)));
+    session_regenerate_id(true);$_SESSION=array('pz_customer'=>$a['id'],'pz_auth_version'=>$a['authVersion']??0,'pz_until'=>time()+43200,'pz_csrf'=>bin2hex(random_bytes(32)));
 }
 function pz_portal_new_account($email) {
     $a=array('id'=>bin2hex(random_bytes(16)),'email'=>$email,'active'=>true,'clientId'=>0,'createdAt'=>date('c'));
@@ -66,6 +67,36 @@ function pz_portal_check_code($email,$code,$c){
     });
     if(!$account)throw new InvalidArgumentException('Kod jest nieprawidłowy, wykorzystany lub wygasł. Zamów nowy kod.');
     return $account;
+}
+// Credentials stay in a separate server-only record, never in customer API data.
+function pz_portal_password_login($email,$password,$c){
+    if(empty($c['auth']['email_enabled']))throw new InvalidArgumentException('Logowanie przez e-mail jest wyłączone.');
+    $email=pz_portal_email($email);
+    pz_portal_rate('password-ip|'.($_SERVER['REMOTE_ADDR']??''),30,$c);
+    pz_portal_rate('password-email|'.$email,10,$c);
+    $password=is_string($password)?$password:'';
+    $identity=pz_portal_identity('email',$email);
+    $a=$identity?pz_store('portal_account',$identity['accountId']):null;
+    $credential=$a?pz_store('portal_password',$a['id']):null;
+    // A fixed dummy hash keeps unknown accounts on the password verification path.
+    $hash=$credential['hash']??'$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.';
+    $valid=password_verify(strlen($password)<=72?$password:'',$hash);
+    if(!$valid||!$credential||!$a||empty($a['active'])||strlen($password)>72)throw new InvalidArgumentException('Nieprawidłowy e-mail lub hasło. Możesz zalogować się kodem i ustawić nowe hasło.');
+    return $a;
+}
+function pz_portal_set_password($a,$data){
+    $password=$data['password']??'';
+    if(!is_string($password)||mb_strlen($password,'UTF-8')<12||strlen($password)>72||str_contains($password,"\0"))throw new InvalidArgumentException('Hasło musi mieć minimum 12 znaków i maksymalnie 72 bajty (polskie znaki zajmują więcej niż jeden).');
+    if($password!==($data['confirm']??''))throw new InvalidArgumentException('Hasła muszą być takie same.');
+    $credential=pz_store('portal_password',$a['id']);
+    $recentCode=($_SESSION['pz_code_verified_at']??0)>time()-600;
+    $current=$data['current']??'';
+    if(!$recentCode&&(!$credential||!is_string($current)||strlen($current)>72||!password_verify($current,$credential['hash'])))throw new InvalidArgumentException('Podaj obecne hasło albo zaloguj się ponownie kodem e-mail, aby ustawić nowe.');
+    pz_put('portal_password',$a['id'],array('hash'=>password_hash($password,PASSWORD_DEFAULT)));
+    $a['authVersion']=($a['authVersion']??0)+1;pz_put('portal_account',$a['id'],$a);
+    $_SESSION['pz_auth_version']=$a['authVersion'];
+    unset($_SESSION['pz_code_verified_at']);
+    return array('ok'=>true);
 }
 function pz_portal_google_account($identity,$linkId=null){
     $sub=(string)($identity['sub']??'');$email=pz_portal_email($identity['email']??'');

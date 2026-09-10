@@ -201,3 +201,9 @@ Na telefonie przesunięcie palcem po pasku dni zmienia wybrany dzień o jeden, r
 ### Sortowanie list
 
 Kliknięcie nagłówka kolumny lub strzałki sortuje tabelę rosnąco, ponowne kliknięcie malejąco. Obsługiwane są nazwy po polsku, liczby i kwoty oraz daty; brakujące wartości trafiają na koniec. Sortowane są całe wiersze wraz z przyciskami dotyczącymi właściwego rekordu. Dotyczy również tabel generowanych po otwarciu raportu lub szczegółów. Akcje, edytory pozycji dokumentu i wiersze podsumowań nie są sortowane. Ponowne pobranie danych przywraca kolejność źródłową.
+
+### Logowanie klienta hasłem
+
+Portal klienta obsługuje e-mail jako login oraz hasło, obok kodu jednorazowego i Google. Istniejące konto nie ma hasła, dopóki klient go nie ustawi: „Nie pamiętam hasła / załóż konto / użyj kodu”, potwierdzenie kodu, następnie „Hasło do konta”. Przez 10 minut po logowaniu kodem można ustawić nowe hasło bez obecnego hasła. Późniejsza zmiana wymaga obecnego hasła lub ponownego logowania kodem. Zmiana unieważnia pozostałe sesje klienta. Konta pracowników Dolibarra pozostają oddzielne.
+
+Hasła są zapisywane wyłącznie jako skróty w bazie, nie w konfiguracji ani na GitHubie. Logowanie e-mailem/hasłem korzysta z istniejącego ustawienia `auth.email_enabled`. Próby logowania są limitowane po adresie e-mail i IP. Test regresji: `php tests/portal-password.php` (PDO SQLite i mbstring).

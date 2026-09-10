@@ -119,14 +119,17 @@
     pendingView();
   }
   async function refresh() { if (status.authenticated) await loadCustomer(); await calendar(); }
-  for (const id of ['email', 'verify', 'profile', 'dog']) $(id).addEventListener('submit', e => {
+  for (const id of ['email', 'verify', 'passwordLogin', 'passwordSet', 'profile', 'dog']) $(id).addEventListener('submit', e => {
     e.preventDefault(); run(async () => {
       const result = await api(id, Object.fromEntries(new FormData(e.target)));
       if (id === 'email') { $('verify').hidden = false; message(result.message); $('verify').elements.code.focus(); }
-      else if (id === 'verify') location.reload();
+      else if (id === 'verify' || id === 'passwordLogin') { if (id === 'verify') storage.set('pz-password-setup', '1'); location.reload(); }
+      else if (id === 'passwordSet') { $('passwordSet').reset(); $('passwordMessage').textContent = 'Hasło zapisane. Następnym razem zalogujesz się swoim e-mailem i hasłem.'; }
       else { if (id === 'dog') { $('dog').reset(); $('dog').hidden = true; } await refresh(); message('Dane zapisane. Możesz potwierdzić wybrany termin.'); }
     });
   });
+  $('useCode').addEventListener('click', () => { message(''); $('email').elements.email.value = $('passwordLogin').elements.email.value; $('passwordLogin').hidden = true; $('email').hidden = false; $('email').elements.email.focus(); });
+  $('usePassword').addEventListener('click', () => { message(''); $('passwordLogin').elements.email.value = $('email').elements.email.value; $('email').hidden = true; $('verify').hidden = true; $('passwordLogin').hidden = false; $('passwordLogin').elements.password.focus(); });
   ['openLogin', 'guestLogin'].forEach(id => $(id).addEventListener('click', openLogin));
   $('closeLogin').addEventListener('click', () => $('loginModal').close());
   $('loginModal').addEventListener('click', e => { if (e.target === $('loginModal')) { const r = e.target.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) e.target.close(); } });
@@ -153,11 +156,12 @@
   async function init() {
     status = await api('status'); $('privacy').href = status.privacyUrl; $('privacyFooter').href = status.privacyUrl;
     $('customer').hidden = !status.authenticated; $('guestNote').hidden = status.authenticated; $('openLogin').hidden = status.authenticated; $('logout').hidden = !status.authenticated; $('myVisitsLink').hidden = !status.authenticated;
-    $('google').hidden = !status.google; $('linkGoogle').hidden = !status.google; $('email').hidden = !status.email; $('emailDivider').hidden = !status.google || !status.email;
+    $('google').hidden = !status.google; $('linkGoogle').hidden = !status.google; $('email').hidden = true; $('passwordLogin').hidden = !status.email; $('passwordCard').hidden = !status.email; $('emailDivider').hidden = !status.google || !status.email;
     document.querySelectorAll('input[name="csrf"]').forEach(n => n.value = status.csrf);
     const intent = storage.get('pz-slot-intent'); if (validDate(intent) && intent.slice(0, 10) >= status.today && intent.slice(0, 10) <= addDays(status.today, status.daysAhead)) selectedDate = intent;
     $('from').min = status.today; $('from').max = addDays(status.today, status.daysAhead); $('from').value = selectedDate?.slice(0, 10) || status.today;
     if (status.authenticated) {
+      if (storage.get('pz-password-setup')) { $('passwordSettings').open = true; storage.set('pz-password-setup', null); }
       await loadCustomer(); pendingKey = 'pz-customer-booking:' + customer.email;
       try { const stored = JSON.parse(storage.get(pendingKey)); if (stored && validDate(stored.date) && typeof stored.requestKey === 'string') { pending = stored; selectedDate = stored.date; } } catch { pending = null; }
       pendingView();

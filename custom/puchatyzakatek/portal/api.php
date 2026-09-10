@@ -11,8 +11,12 @@ try{
             pz_portal_reply(pz_portal_request_code($data['email']??'',$portalConfig));
         }
         if($op==='verify'){
-            $a=pz_portal_check_code($_SESSION['pz_email']??'',$data['code']??'',$portalConfig);pz_portal_login($a);pz_portal_reply(array('ok'=>true));
+            $a=pz_portal_check_code($_SESSION['pz_email']??'',$data['code']??'',$portalConfig);pz_portal_login($a);$_SESSION['pz_code_verified_at']=time();pz_portal_reply(array('ok'=>true));
         }
+        if($op==='passwordLogin'){
+            $a=pz_portal_password_login($data['email']??'',$data['password']??'',$portalConfig);pz_portal_login($a);pz_portal_reply(array('ok'=>true));
+        }
+        if($op==='passwordSet')pz_portal_rate('password-set|'.($_SERVER['REMOTE_ADDR']??''),10,$portalConfig);
         if($op==='logout'){$_SESSION=array();session_regenerate_id(true);pz_portal_reply(array('ok'=>true));}
     }
     // Public calendar exposes only the explicit anonymous projection, never customer records.
@@ -24,6 +28,7 @@ try{
         // Re-read ownership under the transaction lock, including disabled accounts.
         $a=pz_portal_account();if(!$a)throw new InvalidArgumentException('Zaloguj się ponownie.');
         switch($op){
+            case 'passwordSet':return pz_portal_set_password($a,$data);
             case 'profile':return pz_portal_profile($a,$data,$portalConfig);
             case 'dog':return pz_portal_add_dog($a,$data);
             case 'book':return pz_portal_book($a,$data,$portalConfig);
